@@ -7,7 +7,8 @@ from sgp4.api import WGS72, Satrec
 
 def _cases():
     lines = [
-        l for l in files("sgp4").joinpath("SGP4-VER.TLE").read_text().splitlines()
+        l
+        for l in files("sgp4").joinpath("SGP4-VER.TLE").read_text().splitlines()
         if l.startswith(("1 ", "2 "))
     ]
     return [(lines[k][:69], lines[k + 1][:69]) for k in range(0, len(lines), 2)]
