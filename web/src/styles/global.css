@@ -398,3 +398,26 @@ table.data tr.hl td {
     transition-duration: 0.001s !important;
   }
 }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 500;
+  font-size: 14px;
+  box-shadow: 0 8px 22px -10px rgba(31, 59, 255, 0.8);
+  transition: transform 0.15s var(--ease);
+}
+.btn:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.btn--ghost {
+  background: none;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  box-shadow: none;
+}

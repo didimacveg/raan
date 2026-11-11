@@ -193,6 +193,7 @@ def main() -> None:
     parser.add_argument("--fetch", action="store_true", help="download from CelesTrak first")
     parser.add_argument("--raw", type=Path, default=RAW / "celestrak")
     parser.add_argument("--out", type=Path, default=WEB_DATA / "catalog.json")
+    parser.add_argument("--archive", type=Path, default=None, help="also write a daily snapshot")
     parser.add_argument(
         "--allow-partial", action="store_true", help="development only: build without `active`"
     )
@@ -218,6 +219,10 @@ def main() -> None:
     )
     ensure(args.out.parent)
     args.out.write_text(json.dumps(catalog, separators=(",", ":")))
+    if args.archive is not None:
+        from raan.catalog.archive import write_snapshot
+
+        print(f"archive snapshot → {write_snapshot(catalog, args.archive)}")
     m = catalog["meta"]
     print(f"catalog: {m['count']} objects → {args.out} ({args.out.stat().st_size / 1e6:.2f} MB)")
     print(f"  by type   {m['by_type']}")

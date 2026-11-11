@@ -1,0 +1,422 @@
+{
+ "meta": {
+  "generated_at": "2026-11-11T22:48:42Z",
+  "title": "RAAN orbital intelligence report",
+  "writer": "template",
+  "disclaimer": "Research project, not for operational use.",
+  "agents": [
+   "catalog-watch",
+   "maneuver-watch",
+   "conjunction-analyst",
+   "reviewer",
+   "editor"
+  ],
+  "findings_proposed": 7,
+  "findings_accepted": 7,
+  "findings_rejected": [],
+  "editor_log": []
+ },
+ "sections": [
+  {
+   "agent": "catalog-watch",
+   "title": "Catalogue watch",
+   "paragraphs": [
+    {
+     "title": "Catalogue snapshot",
+     "text": "The 2026-11-11 22:42:12 UTC snapshot holds 20,152 objects with public bulk elements, 57% of the 35,194 objects on orbit in the SATCAT: 16,894 active payloads and 2,675 debris fragments. 19,271 are in LEO and 585 in the geosynchronous belt.",
+     "caveat": "Positions on the site are SGP4 propagations of these elements, not observations.",
+     "facts": [
+      "catalog.date",
+      "catalog.count",
+      "catalog.coverage",
+      "catalog.on_orbit",
+      "catalog.active",
+      "catalog.debris",
+      "catalog.leo",
+      "catalog.geo"
+     ],
+     "writer": "template"
+    },
+    {
+     "title": "Constellations",
+     "text": "Starlink alone accounts for 11,195 objects, 66% of all active payloads in the snapshot.",
+     "caveat": "",
+     "facts": [
+      "catalog.top_constellation",
+      "catalog.top_constellation_n",
+      "catalog.top_constellation_share"
+     ],
+     "writer": "template"
+    },
+    {
+     "title": "Data freshness",
+     "text": "The median element set is 16.0 hours old. 312 objects have elements older than 5 days; their propagated positions are indicative only. 1,373 objects carry a 6-digit catalogue number and exist only in OMM formats.",
+     "caveat": "",
+     "facts": [
+      "catalog.median_age_h",
+      "catalog.stale",
+      "catalog.six_digit"
+     ],
+     "writer": "template"
+    }
+   ]
+  },
+  {
+   "agent": "maneuver-watch",
+   "title": "Manoeuvre watch",
+   "paragraphs": [
+    {
+     "title": "Detector benchmark",
+     "text": "On 837 operator-reported manoeuvre events of 15 satellites, evaluated leave-one-satellite-out, the classifier reaches F1 0.79 (precision 0.83, recall 0.76), the physics baseline 0.73 and CUSUM 0.51. A detector using only the step in semi-major axis reaches 0.78.",
+     "caveat": "Benchmark satellites perform impulsive station-keeping; low-thrust manoeuvres are not covered.",
+     "facts": [
+      "man.events",
+      "man.sats",
+      "man.ml.f1",
+      "man.ml.precision",
+      "man.ml.recall",
+      "man.physics.f1",
+      "man.cusum.f1",
+      "man.a_only.f1"
+     ],
+     "writer": "template"
+    }
+   ]
+  },
+  {
+   "agent": "conjunction-analyst",
+   "title": "Conjunction research",
+   "paragraphs": [
+    {
+     "title": "Collision-risk models vs the naive forecast",
+     "text": "On the ESA challenge test set (2,167 events, 150 high-risk) the naive forecast scores L = 0.694, matching the published value. The LightGBM gate scores 0.627 on the test set but 0.98 against 0.80 in cross-validation, and wins in 86% of bootstrap resamples. It is not reported as an improvement.",
+     "caveat": "",
+     "facts": [
+      "col.test_events",
+      "col.hr",
+      "col.lrp.L",
+      "col.gbm_gate.L",
+      "col.gate.cv",
+      "col.lrp.cv",
+      "col.gate.p_better"
+     ],
+     "writer": "template"
+    },
+    {
+     "title": "Missed high-risk events",
+     "text": "The naive forecast misses 35 of the 150 high-risk events with 63 false alarms; the gate misses 13 with 185 false alarms.",
+     "caveat": "",
+     "facts": [
+      "col.lrp.fn",
+      "col.hr",
+      "col.lrp.fp",
+      "col.gate.fn",
+      "col.gate.fp"
+     ],
+     "writer": "template"
+    },
+    {
+     "title": "Dataset bias",
+     "text": "Only 66 training events are high-risk under test conditions (0.8%), against 6.9% in the test set.",
+     "caveat": "ESA states that the sets were hand-picked to over-represent high-risk events; results do not transfer to operational prevalence.",
+     "facts": [
+      "col.train_hr",
+      "col.prev_train",
+      "col.prev_test"
+     ],
+     "writer": "template"
+    }
+   ]
+  }
+ ],
+ "facts": {
+  "catalog.active": {
+   "id": "catalog.active",
+   "value": 16894,
+   "text": "16,894",
+   "label": "active objects",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.count": {
+   "id": "catalog.count",
+   "value": 20152,
+   "text": "20,152",
+   "label": "Objects with public bulk GP data",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.coverage": {
+   "id": "catalog.coverage",
+   "value": 0.572597601863954,
+   "text": "57%",
+   "label": "Share of on-orbit objects shown",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.date": {
+   "id": "catalog.date",
+   "value": "2026-11-11T22:42:12Z",
+   "text": "2026-11-11 22:42:12 UTC",
+   "label": "Snapshot time (UTC)",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.debris": {
+   "id": "catalog.debris",
+   "value": 2675,
+   "text": "2,675",
+   "label": "debris objects",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.geo": {
+   "id": "catalog.geo",
+   "value": 585,
+   "text": "585",
+   "label": "Objects in GEO",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.leo": {
+   "id": "catalog.leo",
+   "value": 19271,
+   "text": "19,271",
+   "label": "Objects in LEO",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.median_age_h": {
+   "id": "catalog.median_age_h",
+   "value": 16.008000000000003,
+   "text": "16.0",
+   "label": "Median element-set age (hours)",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.on_orbit": {
+   "id": "catalog.on_orbit",
+   "value": 35194,
+   "text": "35,194",
+   "label": "Objects on orbit in the SATCAT",
+   "source": "web/public/data/catalog.json",
+   "link": "https://celestrak.org/satcat/"
+  },
+  "catalog.six_digit": {
+   "id": "catalog.six_digit",
+   "value": 1373,
+   "text": "1,373",
+   "label": "Objects with a 6-digit catalogue number (cannot be written as a TLE)",
+   "source": "web/public/data/catalog.json",
+   "link": "https://celestrak.org/NORAD/documentation/gp-data-formats.php"
+  },
+  "catalog.stale": {
+   "id": "catalog.stale",
+   "value": 312,
+   "text": "312",
+   "label": "Objects whose elements are older than 5 days",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.top_constellation": {
+   "id": "catalog.top_constellation",
+   "value": "Starlink",
+   "text": "Starlink",
+   "label": "Largest constellation",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.top_constellation_n": {
+   "id": "catalog.top_constellation_n",
+   "value": 11195,
+   "text": "11,195",
+   "label": "Starlink objects",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "catalog.top_constellation_share": {
+   "id": "catalog.top_constellation_share",
+   "value": 0.6626612998697763,
+   "text": "66%",
+   "label": "Starlink share of active payloads",
+   "source": "web/public/data/catalog.json",
+   "link": "https://didimacveg.github.io/kessler/#/"
+  },
+  "col.gate.cv": {
+   "id": "col.gate.cv",
+   "value": 0.9761,
+   "text": "0.98",
+   "label": "Gate model, cross-validated L",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.gate.fn": {
+   "id": "col.gate.fn",
+   "value": 13,
+   "text": "13",
+   "label": "High-risk events missed by the gate",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.gate.fp": {
+   "id": "col.gate.fp",
+   "value": 185,
+   "text": "185",
+   "label": "False alarms of the gate",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.gate.p_better": {
+   "id": "col.gate.p_better",
+   "value": 0.8605,
+   "text": "86%",
+   "label": "Share of bootstrap resamples where the gate beats the naive forecast",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.gbm_gate.L": {
+   "id": "col.gbm_gate.L",
+   "value": 0.6274,
+   "text": "0.627",
+   "label": "LightGBM gate + value: challenge loss L (test)",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.hr": {
+   "id": "col.hr",
+   "value": 150,
+   "text": "150",
+   "label": "High-risk test events",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.lrp.L": {
+   "id": "col.lrp.L",
+   "value": 0.694,
+   "text": "0.694",
+   "label": "Latest risk (naive forecast): challenge loss L (test)",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.lrp.cv": {
+   "id": "col.lrp.cv",
+   "value": 0.8038,
+   "text": "0.80",
+   "label": "Naive forecast, cross-validated L",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.lrp.fn": {
+   "id": "col.lrp.fn",
+   "value": 35,
+   "text": "35",
+   "label": "High-risk events missed by the naive forecast",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.lrp.fp": {
+   "id": "col.lrp.fp",
+   "value": 63,
+   "text": "63",
+   "label": "False alarms of the naive forecast",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.prev_test": {
+   "id": "col.prev_test",
+   "value": 0.06922,
+   "text": "6.9%",
+   "label": "High-risk prevalence, test",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.prev_train": {
+   "id": "col.prev_train",
+   "value": 0.00796,
+   "text": "0.8%",
+   "label": "High-risk prevalence, training",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.test_events": {
+   "id": "col.test_events",
+   "value": 2167,
+   "text": "2,167",
+   "label": "Test events",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "col.train_hr": {
+   "id": "col.train_hr",
+   "value": 66,
+   "text": "66",
+   "label": "High-risk training events under test conditions",
+   "source": "web/public/data/collision.json",
+   "link": "https://didimacveg.github.io/kessler/#/collision"
+  },
+  "man.a_only.f1": {
+   "id": "man.a_only.f1",
+   "value": 0.7758,
+   "text": "0.78",
+   "label": "Semi-major-axis-only detector, F1",
+   "source": "web/public/data/maneuvers.json",
+   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+  },
+  "man.cusum.f1": {
+   "id": "man.cusum.f1",
+   "value": 0.5055,
+   "text": "0.51",
+   "label": "cusum detector, f1 (all satellites)",
+   "source": "web/public/data/maneuvers.json",
+   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+  },
+  "man.events": {
+   "id": "man.events",
+   "value": 837,
+   "text": "837",
+   "label": "Reported manoeuvre events",
+   "source": "web/public/data/maneuvers.json",
+   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+  },
+  "man.ml.f1": {
+   "id": "man.ml.f1",
+   "value": 0.7945,
+   "text": "0.79",
+   "label": "ml detector, f1 (all satellites)",
+   "source": "web/public/data/maneuvers.json",
+   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+  },
+  "man.ml.precision": {
+   "id": "man.ml.precision",
+   "value": 0.8269,
+   "text": "0.83",
+   "label": "ml detector, precision (all satellites)",
+   "source": "web/public/data/maneuvers.json",
+   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+  },
+  "man.ml.recall": {
+   "id": "man.ml.recall",
+   "value": 0.7646,
+   "text": "0.76",
+   "label": "ml detector, recall (all satellites)",
+   "source": "web/public/data/maneuvers.json",
+   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+  },
+  "man.physics.f1": {
+   "id": "man.physics.f1",
+   "value": 0.7322,
+   "text": "0.73",
+   "label": "physics detector, f1 (all satellites)",
+   "source": "web/public/data/maneuvers.json",
+   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+  },
+  "man.sats": {
+   "id": "man.sats",
+   "value": 15,
+   "text": "15",
+   "label": "Benchmark satellites",
+   "source": "web/public/data/maneuvers.json",
+   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+  }
+ }
+}
