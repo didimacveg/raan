@@ -13,3 +13,7 @@ brief: make a GMV/ESA/TU Delft engineer think *this student understands the prob
 | 6 | Manoeuvre benchmark is cloned at a pinned commit at build time, never vendored; only derived series are published. | The upstream repo has no licence file. | — |
 | 7 | The created cloud environment `kessler` allows only: celestrak.org, zenodo.org, arxiv.org, kelvins.esa.int, www.space-track.org, github.com (+raw/codeload), ids-doris.org, repository.tudelft.nl. | Needed to download real data; smallest set. | Delete the environment in Claude settings. |
 | 8 | CelesTrak `active` is downloaded at most once per 2-hour update, and never retried on HTTP errors. | Their usage policy; they firewall offenders. | — |
+| 9 | The "Starlink train" video became "Starlink only" (all 11,195, 300×). | I could not verify from the data that the newest batch was a visible train "days after launch"; the first render did not show one. | — |
+| 10 | Physics baseline uses a median-of-three level shift, not raw jumps/RTN thresholds as the brief literally said. | Raw jumps score F1 0.35 (kept as an ablation row). RTN residuals are shown as evidence and used as classifier features. | — |
+| 11 | README and launch post say the project was built with an AI coding assistant. | Honesty rule; it will be obvious in any interview. | Delete the sentence. |
+| 12 | Posts 6, 11 and 12 are on Wed 9, Wed 23 and Tue 29 Dec. | 8 Dec is a holiday in Spain; 24 and 31 Dec avoided. | Edit `content/CALENDARIO.md`. |

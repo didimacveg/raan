@@ -423,6 +423,10 @@ export default function ManeuverPage({ route }: { route: Route }) {
       .catch((e) => setError(String(e)))
   }, [sat])
   useEffect(() => setSelected(null), [method])
+  useEffect(() => {
+    // capture hook used by scripts/content.cjs
+    ;(window as unknown as { __raanMan?: unknown }).__raanMan = { setRange, setMethod }
+  }, [])
 
   if (error) return <main className="page"><p className="note">Results not built yet: {error}. Run <span className="mono">make maneuvers</span>.</p></main>
   if (!data) return <main className="page" />

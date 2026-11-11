@@ -529,6 +529,11 @@ export class GlobeEngine {
     }
   }
 
+  /** Point diameter in CSS pixels at the reference distance (larger for posters and videos). */
+  setPointSize(px: number) {
+    this.pointsMaterial.uniforms.uSize.value = px
+  }
+
   // --- deterministic capture (used by scripts/capture to render videos frame by frame) -----
   setManual(manual: boolean) {
     this.manual = manual
