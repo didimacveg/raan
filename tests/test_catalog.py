@@ -98,11 +98,24 @@ def test_build_catalog_columns_and_meta():
         "fengyun-1c-debris": [gp(30000, "FENGYUN 1C DEB", n=14.2)],
     }
     satcat = {
-        25544: {"OBJECT_TYPE": "PAY", "OPS_STATUS_CODE": "+", "OWNER": "ISS",
-                "LAUNCH_DATE": "1998-11-20", "RCS": "399.05", "DECAY_DATE": "",
-                "ORBIT_CENTER": "EA"},
-        30000: {"OBJECT_TYPE": "DEB", "OPS_STATUS_CODE": "", "OWNER": "PRC",
-                "LAUNCH_DATE": "1999-05-10", "RCS": "", "DECAY_DATE": "", "ORBIT_CENTER": "EA"},
+        25544: {
+            "OBJECT_TYPE": "PAY",
+            "OPS_STATUS_CODE": "+",
+            "OWNER": "ISS",
+            "LAUNCH_DATE": "1998-11-20",
+            "RCS": "399.05",
+            "DECAY_DATE": "",
+            "ORBIT_CENTER": "EA",
+        },
+        30000: {
+            "OBJECT_TYPE": "DEB",
+            "OPS_STATUS_CODE": "",
+            "OWNER": "PRC",
+            "LAUNCH_DATE": "1999-05-10",
+            "RCS": "",
+            "DECAY_DATE": "",
+            "ORBIT_CENTER": "EA",
+        },
         5: {"OBJECT_TYPE": "PAY", "DECAY_DATE": "1990-01-01", "ORBIT_CENTER": "EA"},
     }
     cat = build_catalog(groups, satcat, datetime(2026, 11, 11, tzinfo=UTC))
