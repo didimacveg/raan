@@ -1,0 +1,39 @@
+[project]
+name = "raan"
+version = "0.1.0"
+description = "RAAN · Open Orbital Intelligence Lab — reproducible pipeline (research project, not for operational use)"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Diego Macías Vega" }]
+dependencies = [
+  "numpy>=1.26",
+  "pandas>=2.1",
+  "scipy>=1.11",
+  "scikit-learn>=1.4",
+  "lightgbm>=4.3",
+  "sgp4>=2.23",
+  "pyyaml>=6",
+  "requests>=2.31",
+  "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+seq = ["torch>=2.2"]
+llm = ["anthropic>=0.40"]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[tool.setuptools.packages.find]
+include = ["raan*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["web", "data", "content"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E741"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
