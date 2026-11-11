@@ -6,6 +6,9 @@ import { GlobeEngine, type LiveState, type TickInfo } from './engine'
 import FiltersPanel from './Filters'
 import ObjectCard from './ObjectCard'
 import TimeBar from './TimeBar'
+import { BRAND } from '../brand'
+import { Logo } from '../components/Nav'
+import '../pages/card.css'
 import './twin.css'
 
 declare global {
@@ -32,6 +35,7 @@ export default function TwinPage({ route }: { route: Route }) {
   const stress = Number(route.query.get('stress') ?? 0)
   const showFps = route.query.has('fps') || stress > 0
   const bare = route.query.get('ui') === '0'
+  const poster = route.query.get('title')
 
   useEffect(() => {
     loadCatalog(stress)
@@ -234,6 +238,25 @@ export default function TwinPage({ route }: { route: Route }) {
             }}
           />
         </>
+      )}
+
+      {bare && poster && (
+        <div className="poster">
+          <div className="poster__top">
+            <span className="card-art__brand">
+              <Logo size={34} /> {BRAND.name}
+            </span>
+            <h1>{poster}</h1>
+            {route.query.get('sub') && <p className="poster__sub">{route.query.get('sub')}</p>}
+          </div>
+          <div className="poster__bottom">
+            <div className="poster__stat">
+              {route.query.get('stat') && <b className="mono">{route.query.get('stat')}</b>}
+              {route.query.get('statl') && <span>{route.query.get('statl')}</span>}
+            </div>
+            <span className="card-art__flag mono">SGP4 propagation · not live tracking</span>
+          </div>
+        </div>
       )}
 
       {showFps && tick && (

@@ -292,6 +292,10 @@ function Explorer({ data }: { data: CollisionData }) {
   const [logTau, setLogTau] = useState(Math.log10(tauCv))
   const [model, setModel] = useState<'gbm_gate' | 'lrp'>('gbm_gate')
   const tau = 10 ** logTau
+  useEffect(() => {
+    // capture hook used by scripts/content.cjs to animate the slider deterministically
+    ;(window as unknown as { __raanCol?: unknown }).__raanCol = { setLogTau, setModel }
+  }, [])
   const pred = useMemo(
     () => (model === 'lrp' ? ev.latest_risk : gated(ev.gbm_prob, ev.gbm_value, tau)),
     [model, tau, ev],
