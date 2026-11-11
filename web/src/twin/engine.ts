@@ -84,6 +84,7 @@ export class GlobeEngine {
   private readonly manualWaiters = new Map<number, () => void>()
 
   selected: number | null = null
+  private portrait = false
   private hovered: number | null = null
   private readonly mask: Float32Array
 
@@ -468,7 +469,13 @@ export class GlobeEngine {
     this.renderer.setSize(w, h, false)
     this.camera.aspect = w / h
     // keep the globe comfortably inside portrait viewports
-    this.camera.fov = w / h < 0.8 ? 52 : 38
+    const portrait = w / h < 0.8
+    this.camera.fov = portrait ? 52 : 38
+    if (portrait !== this.portrait) {
+      // pull back once when entering a portrait viewport so the LEO shell fits the width
+      this.camera.position.multiplyScalar(portrait ? 1.3 : 1 / 1.3)
+      this.portrait = portrait
+    }
     this.camera.updateProjectionMatrix()
   }
 

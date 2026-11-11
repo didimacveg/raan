@@ -225,6 +225,19 @@ def main() -> None:
             row[method] = hit
         by_size.append(row)
 
+    # Are the missed large burns isolated, or part of multi-burn campaigns that a detector
+    # working at ~1 element set per day merges into a single detection?
+    big_missed = big_missed_in_campaign = 0
+    for n in regimes["LEO"]:
+        for k in np.flatnonzero((sizes[n] >= 100.0) & ~found["ml"][n]):
+            gaps = np.abs(np.delete(truth[n], k) - truth[n][k]) / 86400.0
+            big_missed += 1
+            big_missed_in_campaign += int(len(gaps) > 0 and gaps.min() <= 4.0)
+    large_burn_misses = {
+        "method": "ml", "min_size_m": 100.0, "missed": big_missed,
+        "with_another_reported_burn_within_4_days": big_missed_in_campaign,
+    }  # fmt: skip
+
     # --- per-satellite timelines for the web --------------------------------------------------
     out_dir = ensure(WEB_DATA / "maneuvers")
     satellites = []
@@ -313,6 +326,7 @@ def main() -> None:
         "physics_ablation": ablation,
         "curves": curves,
         "recall_by_size_leo": by_size,
+        "large_burn_misses": large_burn_misses,
         "importance": [{"feature": f, "gain": round(g, 4)} for f, g in importance],
         "satellites": satellites,
     }

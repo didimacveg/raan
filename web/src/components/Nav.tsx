@@ -41,7 +41,8 @@ export default function Nav({ path }: { path: string }) {
         <small>{BRAND.tagline}</small>
       </a>
       <span className="nav__flag" title="Positions are propagated from published orbital elements.">
-        {BRAND.disclaimer}
+        <span className="nav__flag-full">{BRAND.disclaimer}</span>
+        <span className="nav__flag-short">Research · not operational</span>
       </span>
       <button
         className="nav__menu"

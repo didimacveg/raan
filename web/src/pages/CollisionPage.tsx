@@ -95,7 +95,7 @@ function ResultsChart({ data }: { data: CollisionData }) {
   return (
     <Frame
       title="Challenge loss L on the official test set (lower is better)"
-      subtitle="Dot = score · bar = 95 % bootstrap interval over the 2,167 test events"
+      subtitle="Dot = score · bar = 95% bootstrap interval over the 2,167 test events"
       height={height}
       margin={{ top: 8, right: 24, bottom: 40, left: 196 }}
       x={(w) => linear([0, 3.2], [0, w])}
@@ -125,7 +125,7 @@ function ResultsChart({ data }: { data: CollisionData }) {
                       <>
                         {r.name}
                         <br />
-                        L <b>{fmt(r.L, 3)}</b> · 95 % [{fmt(r.L_ci95[0], 2)}, {fmt(r.L_ci95[1], 2)}]
+                        L <b>{fmt(r.L, 3)}</b> · 95% [{fmt(r.L_ci95[0], 2)}, {fmt(r.L_ci95[1], 2)}]
                         <small>
                           MSE_HR {fmt(r.mse_hr, 3)} · F2 {fmt(r.f2, 3)} · {r.fn} missed · {r.fp} false alarms
                         </small>
@@ -531,7 +531,7 @@ export default function CollisionPage() {
             The best learned model scores L = {fmt(gate.L, 3)} on the test set against{' '}
             {fmt(lrp.L, 3)} for the naive forecast — but cross-validation on the training data said
             the opposite ({fmt(data.selection.cv_L_gbm_gate, 2)} vs {fmt(data.selection.cv_L_lrp, 2)}), and the
-            95 % interval of the difference, [{fmt(gate.delta_vs_reference_ci95[0], 2)},{' '}
+            95% interval of the difference, [{fmt(gate.delta_vs_reference_ci95[0], 2)},{' '}
             {fmt(gate.delta_vs_reference_ci95[1], 2)}], includes zero. Choosing a model because it
             wins on the test set is exactly the mistake this lab is built to avoid.
           </p>
@@ -547,7 +547,7 @@ export default function CollisionPage() {
           </div>
           <div className="stat">
             <span className="stat__v">{Math.round(gate.p_better_than_reference * 100)}%</span>
-            <span className="stat__l">of bootstrap resamples where it wins (95 % needed)</span>
+            <span className="stat__l">of bootstrap resamples where it wins (95% needed)</span>
           </div>
           <div className="stat">
             <span className="stat__v">{train.events_protocol_high_risk}</span>
@@ -573,7 +573,7 @@ export default function CollisionPage() {
               <tr>
                 <th>Model</th>
                 <th className="num">L test</th>
-                <th className="num">95 % interval</th>
+                <th className="num">95% interval</th>
                 <th className="num">L cross-val.</th>
                 <th className="num">MSE_HR</th>
                 <th className="num">F2</th>
@@ -631,11 +631,11 @@ export default function CollisionPage() {
         <p className="lede">
           ESA states that both sets were hand-picked to over-represent high-risk events. The effect is
           measurable. Among training events that satisfy the test conditions, {train.events_protocol_high_risk}{' '}
-          of {fmtInt(train.events_protocol)} end high-risk ({(train.prevalence_protocol * 100).toFixed(1)} %). In the
-          test set it is {test.events_high_risk} of {fmtInt(test.events)} ({(test.prevalence * 100).toFixed(1)} %).
+          of {fmtInt(train.events_protocol)} end high-risk ({(train.prevalence_protocol * 100).toFixed(1)}%). In the
+          test set it is {test.events_high_risk} of {fmtInt(test.events)} ({(test.prevalence * 100).toFixed(1)}%).
           And it is not only the base rate: an event whose latest risk is between 10⁻⁶ and 10⁻⁵ ends
-          high-risk {((tr6.p_high_final ?? 0) * 100).toFixed(0)} % of the time in training and{' '}
-          {((te6.p_high_final ?? 0) * 100).toFixed(0)} % of the time in test.
+          high-risk {((tr6.p_high_final ?? 0) * 100).toFixed(0)}% of the time in training and{' '}
+          {((te6.p_high_final ?? 0) * 100).toFixed(0)}% of the time in test.
         </p>
         <div className="grid-2">
           <div className="panel">
@@ -702,7 +702,7 @@ export default function CollisionPage() {
           <div className="panel prose">
             <div className="eyebrow">What did not work, and why</div>
             <p>
-              <b>Direct regression (L = {fmt(by.gbm_direct.L, 2)}).</b> Trained on {(100 - train.prevalence_protocol * 100).toFixed(0)} % low-risk
+              <b>Direct regression (L = {fmt(by.gbm_direct.L, 2)}).</b> Trained on {(100 - train.prevalence_protocol * 100).toFixed(0)}% low-risk
               events, the regressor pulls every prediction towards the floor and pays for it on the
               high-risk events the metric counts.
             </p>
