@@ -28,9 +28,11 @@ export default function ResearchPage() {
   const [col, setCol] = useState<CollisionData | null>(null)
   const [man, setMan] = useState<ManeuverData | null>(null)
   const [cat, setCat] = useState<CatalogMeta | null>(null)
+  const [ver, setVer] = useState<{ vectors: number; tle_max_km: number; omm_max_km: number } | null>(null)
   useEffect(() => {
     loadJson<CollisionData>('collision.json').then(setCol).catch(() => {})
     loadJson<ManeuverData>('maneuvers.json').then(setMan).catch(() => {})
+    loadJson<{ vectors: number; tle_max_km: number; omm_max_km: number }>('verification.json').then(setVer).catch(() => {})
     loadJson<{ meta: CatalogMeta }>('catalog.json').then((c) => setCat(c.meta)).catch(() => {})
   }, [])
   if (!col || !man) return <main className="page" />
@@ -52,7 +54,7 @@ export default function ResearchPage() {
       does: 'Classifier decides whether the event will end high-risk; a two-parameter linear model sets the value.',
       data: `${fmtInt(col.dataset.train.events_protocol)} training events (${col.dataset.train.events_protocol_high_risk} high-risk), each also seen 3 and 4 days out.`,
       metric: `L = ${fmt(by.gbm_gate.L, 3)} on test, ${fmt(by.gbm_gate.cv_L ?? 0, 2)} in cross-validation (naive: ${fmt(by.lrp.cv_L ?? 0, 2)}).`,
-      limits: 'Not selected by the pre-declared rule. Test gain is within the bootstrap interval and tied to the test set’s higher prevalence.',
+      limits: 'Not selected by the rule (lowest cross-validated loss). The 95% interval of the test difference includes zero, and the gain is tied to the test set’s higher prevalence.',
       verdict: 'negative',
     },
     {
@@ -72,7 +74,7 @@ export default function ResearchPage() {
             does: 'Recurrent network over the last 8 CDMs of each event, with a gate head and a value head.',
             data: 'Same events; 12 features per CDM; 3 seeds averaged.',
             metric: `L = ${fmt(by.gru.L, 2)}; misses ${by.gru.fn} high-risk events with ${by.gru.fp} false alarms.`,
-            limits: 'Over-fits: thousands of parameters, 66 positive events.',
+            limits: `Over-fits: ${fmtInt((by.gru as unknown as { parameters: number }).parameters)} parameters, ${col.dataset.train.events_protocol_high_risk} positive events.`,
             verdict: 'negative' as const,
           },
         ]
@@ -83,7 +85,7 @@ export default function ResearchPage() {
       does: 'Flags a drift-compensated step in mean semi-major axis or inclination, measured in robust sigmas.',
       data: 'No training; one threshold per regime chosen on the other satellites.',
       metric: `F1 ${fmt(S.physics.ALL.f1, 2)} (precision ${fmt(S.physics.ALL.precision, 2)}, recall ${fmt(S.physics.ALL.recall, 2)}). Semi-major axis alone: ${fmt(man.physics_ablation.a.ALL.f1, 2)}.`,
-      limits: 'Needs three later element sets; blind below ~1 m of semi-major-axis change.',
+      limits: `Needs three later element sets, so it is retrospective. Its own noise is ${man.noise_floor_leo_m ? fmt(man.noise_floor_leo_m.median, 1) : '—'} m (median) to ${man.noise_floor_leo_m ? fmt(man.noise_floor_leo_m.p95, 1) : '—'} m (95th percentile) of semi-major axis; burns of that size are mostly missed.`,
       verdict: 'works',
     },
     {
@@ -144,8 +146,11 @@ export default function ResearchPage() {
                   <a href={href('/')}>SGP4 verification</a>
                 </td>
                 <td>Does the browser propagator match the reference implementation?</td>
-                <td>666 state vectors of Vallado's 33 verification element sets</td>
-                <td className="mono small">max |Δr| = 1.2e-7 km</td>
+                <td>{ver ? ver.vectors : '—'} state vectors of Vallado's 33 verification element sets</td>
+                <td className="mono small">
+                  max |Δr| = {ver ? ver.tle_max_km.toExponential(1) : '—'} km (TLE reader) ·{' '}
+                  {ver ? ver.omm_max_km.toExponential(1) : '—'} km (OMM fields, as the app uses)
+                </td>
                 <td className="mono small">make test</td>
               </tr>
               <tr>
@@ -239,7 +244,11 @@ export default function ResearchPage() {
                   No licence file in the repository. Element sets are Space-Track basic data; labels
                   are operator reports published through the International DORIS Service.
                 </td>
-                <td>Not vendored. Only derived series (mean elements, detections) are published.</td>
+                <td>
+                  Not vendored. Only derived series are published: mean elements, detections, and
+                  for each reported manoeuvre the pair of element sets around it (not the reported
+                  time).
+                </td>
               </tr>
               <tr>
                 <td>
@@ -299,7 +308,7 @@ make reproduce    `}
           <span># collision models, manoeuvre detectors, report, PDF, site build</span>
           {`
 make test         `}
-          <span># SGP4 vs Vallado, metric definitions, pipeline and agent logic</span>
+          <span># SGP4 vs Vallado, metric definitions, pipeline and report checks</span>
         </div>
       </section>
 

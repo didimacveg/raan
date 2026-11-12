@@ -42,6 +42,8 @@ export interface ManeuverData {
   lag_sensitivity: Record<Method, Record<string, Counts>>
   physics_ablation: Record<string, Record<'ALL' | 'LEO' | 'GEO', Counts>>
   recall_by_size_leo: ({ lo_m: number; hi_m: number | null; n: number } & Record<Method, number>)[]
+  /** |step statistic| in metres on LEO intervals far from any reported burn */
+  noise_floor_leo_m?: { intervals: number; median: number; p90: number; p95: number }
   large_burn_misses: { missed: number; with_another_reported_burn_within_4_days: number }
   importance: { feature: string; gain: number }[]
   satellites: SatSummary[]
@@ -445,7 +447,7 @@ export default function ManeuverPage({ route }: { route: Route }) {
     span[0] + (range[0] / 1000) * (span[1] - span[0]),
     span[0] + (range[1] / 1000) * (span[1] - span[0]),
   ]
-  const small = data.recall_by_size_leo[0]
+  const mid = data.recall_by_size_leo[1]
   return (
     <main className="page">
       <header className="page__head rise">
@@ -455,8 +457,10 @@ export default function ManeuverPage({ route }: { route: Route }) {
           Operators rarely announce manoeuvres, but a burn leaves a mark in the public orbital
           elements: the semi-major axis steps, and yesterday's elements stop predicting today's
           position. Three detectors were tested on {fmtInt(data.totals.element_sets)} element sets of{' '}
-          {data.totals.satellites} satellites whose operators <em>do</em> publish their manoeuvres —{' '}
-          {fmtInt(data.totals.reported_maneuvers)} reported burns.
+          {data.totals.satellites} satellites whose operators <em>do</em> publish their manoeuvres:{' '}
+          {fmtInt(data.totals.reported_maneuvers)} reported burns, {fmtInt(data.totals.maneuver_events)}{' '}
+          scorable events once burns less than 1.5 days apart are merged and those outside the
+          element-set history are set aside.
         </p>
       </header>
 
@@ -489,9 +493,13 @@ export default function ManeuverPage({ route }: { route: Route }) {
           </div>
           <div className="stat">
             <span className="stat__v">
-              {small.ml}/{small.n}
+              {mid.ml}/{mid.n}
             </span>
-            <span className="stat__l">burns under 1 m in semi-major axis found by the best detector</span>
+            <span className="stat__l">
+              burns of 1 to 3 m in semi-major axis found by the best detector
+              {data.noise_floor_leo_m &&
+                ` (noise of the statistic: median ${fmt(data.noise_floor_leo_m.median, 1)} m, 95th percentile ${fmt(data.noise_floor_leo_m.p95, 1)} m)`}
+            </span>
           </div>
         </div>
       </section>
