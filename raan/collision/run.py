@@ -1,7 +1,7 @@
 """Collision Research Lab — full experiment.
 
-Reproduces the challenge baselines, trains the learned models, scores everything once on the
-official test set and writes ``web/public/data/collision.json``.
+Reproduces the challenge baselines, trains the learned models, scores them on the official test
+set (never used for fitting or tuning) and writes ``web/public/data/collision.json``.
 
 Run: ``python -m raan.collision.run`` (about 4 minutes on a laptop CPU; ``--no-seq`` skips the GRU)
 """
@@ -179,7 +179,8 @@ def main() -> None:
         "lrp": {"name": "Latest risk (naive forecast)", "kind": "baseline",
                 "cv_L": r(gbm.cv_loss_lrp)},
         "gbm_gate": {"name": "LightGBM gate + value", "kind": "gradient boosting",
-                     "cv_L": r(gbm.cv_loss_gate), "threshold": r(gbm.threshold, 5)},
+                     "cv_L": r(gbm.cv_loss_gate), "cv_L_nested": r(gbm.cv_loss_gate_nested),
+                     "threshold": r(gbm.threshold, 5)},
         "gbm_direct": {"name": "LightGBM direct regression", "kind": "gradient boosting",
                        "cv_L": r(gbm.cv_loss_direct)},
     }  # fmt: skip
@@ -252,6 +253,9 @@ def main() -> None:
             "rule": "choose the model with the lowest cross-validated L on the training set",
             "cv_L_lrp": lrp_cv,
             "cv_L_gbm_gate": gate_cv,
+            "cv_L_gbm_gate_nested": r(gbm.cv_loss_gate_nested),
+            "cv_note": "cv_L_gbm_gate tunes the threshold on the predictions it scores (optimistic "
+            "for the gate); the nested value chooses threshold and value model inside each fold",
             "selected_by_rule": "lrp" if lrp_cv <= gate_cv else "gbm_gate",
             "test_L_lrp": lrp_test["L"],
             "test_L_gbm_gate": gate_test["L"],

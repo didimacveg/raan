@@ -23,7 +23,8 @@ SYSTEM_PROMPT = (
     "so it reads well for an aerospace engineer: plain, precise, no hype, no first person. "
     "Hard rules: (1) use ONLY the numbers given in FACTS, copied character for character; "
     "(2) do not add any number, date, name or claim that is not in FACTS or the draft; "
-    "(3) keep every caveat; (4) at most 90 words; (5) return only the paragraph."
+    "(3) do not soften or drop any limitation stated in the draft; (4) at most 90 words; "
+    "(5) return only the paragraph."
 )
 DEFAULT_MODEL = "claude-sonnet-5-5"
 
@@ -68,9 +69,7 @@ class Editor:
             facts = [store[i] for i in finding.fact_ids]
             block = "\n".join(f"- {f.label}: {f.text}" for f in facts)
             try:
-                candidate = self.writer(
-                    draft + (f" Caveat: {finding.caveat}" if finding.caveat else ""), block
-                )
+                candidate = self.writer(draft, block)
                 bad = unsupported_numbers(candidate, facts, extra_allowed={"300"})
                 if not candidate:
                     self.log.append(f"{finding.title}: empty model answer, template used")
@@ -85,7 +84,8 @@ class Editor:
         return {
             "title": finding.title,
             "text": text,
-            "caveat": "" if used == "claude" else finding.caveat,
+            # The caveat is never delegated to the language model: it is always printed as written.
+            "caveat": finding.caveat,
             "facts": finding.fact_ids,
             "writer": used,
         }

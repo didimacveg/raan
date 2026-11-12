@@ -14,6 +14,22 @@ _Updated at the end of each module. Read this first if you are a new session._
 | LinkedIn content | **done** | `content/CALENDARIO.md`, 13 images, 4 videos; generator `web/scripts/content.cjs` |
 | Deploy | **waiting for Diego** | `docs/PASOS_PARA_DIEGO.md` steps 1–3 |
 
+## Pre-launch review (independent session, 2026-11-12) — progress log
+
+Work is on branch `claude/raan-pre-launch-review-8qqz4h` (based on `claude/epic-volta-jjkxwt`).
+Updated after every step so a new session can resume.
+
+| Step | State | What was actually checked |
+|---|---|---|
+| 1 Security | **done** | Full git history scanned for keys/tokens/paths: none. Found and fixed: absolute local paths published inside `catalog.json` (`meta.fetch[].path`). Workflows rewritten with per-job least privilege and SHA-pinned actions. |
+| 2 Licences | **done** | Zenodo API: CC BY 4.0, md5 matches. Space-Track documentation: blanket redistribution approval for TLE/OMM/SATCAT with citation (read today). CelesTrak usage policy read today: no licence text, no redistribution clause. Manoeuvre benchmark: still no licence at the pinned commit (= upstream HEAD); label timestamps were being republished → now only the bracketing element-set interval is published. |
+| 3 Code review | in progress | L = 0.694 recomputed independently from the raw CSVs; full collision run reproduces every published figure; manoeuvre run reproduces F1 0.79/0.73/0.51; independent recount from timelines matches. Fixes so far: fetcher stops on first HTTP error, build refuses incomplete inputs, caveats kept when an LLM rewrites, LEO-only orbit-change finding, nested CV added, chance level added. |
+| 4 Traceability | pending | |
+| 5 Performance | pending | |
+| 6 Deploy | workflow rewritten; local simulation pending | |
+| 7 `docs/DEFENSA.md` | pending | |
+| 8 Posts | pending | |
+
 ## How to run
 
 ```bash

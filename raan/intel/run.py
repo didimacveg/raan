@@ -25,7 +25,7 @@ from raan.intel.agents import (
     Reviewer,
     load_json,
 )
-from raan.intel.editor import Editor, Section
+from raan.intel.editor import Editor
 from raan.paths import DATA, REPORTS, WEB_DATA, ensure
 
 ANALYSTS = (CatalogWatch, ManeuverWatch, ConjunctionAnalyst)
@@ -100,10 +100,6 @@ def to_markdown(report: dict) -> str:
         lines += [f"- rejected: {r['title']} — {r['reason']}" for r in meta["findings_rejected"]]
         lines += [f"- {entry}" for entry in meta["editor_log"]]
     return "\n".join(lines) + "\n"
-
-
-def sections_from(report: dict) -> list[Section]:
-    return [Section(s["agent"], s["title"], s["paragraphs"]) for s in report["sections"]]
 
 
 def main() -> None:

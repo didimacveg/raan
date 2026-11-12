@@ -1,8 +1,9 @@
 """Baselines and learned models for final-risk prediction.
 
 Every model exposes the same contract: given event features built from CDMs issued >= 2 days
-before TCA, return a predicted final log10 risk per event. Model selection (thresholds, blend
-weights) uses out-of-fold predictions on the *training* set only; the test set is scored once.
+before TCA, return a predicted final log10 risk per event. Model selection (thresholds, value
+model) uses out-of-fold predictions on the *training* set only; test labels are never used to fit
+or tune anything.
 """
 
 from __future__ import annotations
@@ -129,6 +130,37 @@ REGRESSOR_PARAMS = dict(
 )  # fmt: skip
 
 
+def nested_cv_loss(ts: TrainingSet, inner_folds: int = 4) -> float:
+    """Cross-validated L of the gate with *every* fitted piece chosen inside the fold.
+
+    ``fit_gbm`` picks the gate threshold on the same out-of-fold predictions it is then scored
+    on, and fits the value model on all training events, so its ``cv_loss_gate`` flatters the
+    gate. Here, for each outer fold, the threshold and the value model come only from the other
+    folds (inner grouped CV); the held-out fold is scored once. This is the fair number to put
+    next to the naive forecast.
+    """
+    y_hr = (ts.y >= metrics.THRESHOLD).astype(int)
+    latest = ts.X["risk"].to_numpy()
+    proto = ts.protocol_rows
+    pred = np.full(len(ts.y), np.nan)
+    for train_idx, valid_idx in folds(ts):
+        x, y, hr = ts.X.iloc[train_idx], ts.y[train_idx], y_hr[train_idx]
+        groups, inner_proto = ts.groups[train_idx], proto[train_idx]
+        oof = np.full(len(y), np.nan)
+        for a, b in GroupKFold(n_splits=inner_folds).split(x, y, groups):
+            clf = lgb.LGBMClassifier(**CLASSIFIER_PARAMS).fit(x.iloc[a], hr[a])
+            oof[b] = clf.predict_proba(x.iloc[b])[:, 1]
+        inner_latest = latest[train_idx]
+        value_model = ValueModel.fit(inner_latest[inner_proto], y[inner_proto])
+        threshold, _ = best_threshold(
+            oof[inner_proto], value_model.predict(inner_latest[inner_proto]), y[inner_proto]
+        )
+        clf = lgb.LGBMClassifier(**CLASSIFIER_PARAMS).fit(x, hr)
+        prob = clf.predict_proba(ts.X.iloc[valid_idx])[:, 1]
+        pred[valid_idx] = gated_prediction(prob, value_model.predict(latest[valid_idx]), threshold)
+    return metrics.score(ts.y[proto], pred[proto]).L
+
+
 @dataclass
 class GbmResult:
     oof_prob: np.ndarray  # out-of-fold P(high-risk), protocol rows only
@@ -136,7 +168,8 @@ class GbmResult:
     oof_final: np.ndarray
     oof_latest: np.ndarray
     threshold: float
-    cv_loss_gate: float
+    cv_loss_gate: float  # threshold tuned on the scored predictions: optimistic for the gate
+    cv_loss_gate_nested: float  # threshold and value model chosen inside each fold
     cv_loss_direct: float
     cv_loss_lrp: float
     value_model: ValueModel
@@ -184,6 +217,6 @@ def fit_gbm(ts: TrainingSet, test_table: pd.DataFrame) -> GbmResult:
     )
     return GbmResult(
         oof_prob[proto], oof_reg[proto], ts.y[proto], latest[proto], threshold, cv_gate,
-        cv_direct, cv_lrp, value_model, test_prob, test_gate,
+        nested_cv_loss(ts), cv_direct, cv_lrp, value_model, test_prob, test_gate,
         metrics.clip_predictions(reg.predict(test_x)), importance[:15],
     )  # fmt: skip

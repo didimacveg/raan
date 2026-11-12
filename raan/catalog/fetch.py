@@ -3,7 +3,7 @@
 Implements the CelesTrak usage policy (https://celestrak.org/usage-policy.php):
 
 * GP data is refreshed every 2 hours, so a cached file younger than that is reused;
-* any non-200 answer stops the run for that URL — we never hammer;
+* any non-200 answer stops the whole run (no retry, no further URLs) — we never hammer;
 * an HTTP 403 "GP data has not updated since your last successful download" is expected when the
   same IP already fetched the current update; the caller then keeps the previous snapshot.
 
@@ -43,8 +43,8 @@ SATCAT_REFRESH_S = 12 * 3600
 class FetchResult:
     name: str
     url: str
-    path: str
-    status: str  # "downloaded" | "cached" | "not-updated" | "error"
+    path: str  # file name inside the raw directory (never an absolute path: it is published)
+    status: str  # "downloaded" | "cached" | "not-updated" | "error" | "skipped"
     http_status: int | None
     fetched_at: str | None  # ISO time of the file we are going to use
     detail: str = ""
@@ -69,7 +69,7 @@ def fetch_one(
     """
     now = time.time() if now is None else now
     if dest.exists() and dest.stat().st_size > 0 and now - dest.stat().st_mtime < max_age_s:
-        return FetchResult(name, url, str(dest), "cached", None, _iso(dest.stat().st_mtime))
+        return FetchResult(name, url, dest.name, "cached", None, _iso(dest.stat().st_mtime))
 
     session = session or requests.Session()
     last_error = ""
@@ -85,14 +85,14 @@ def fetch_one(
             tmp = dest.with_suffix(dest.suffix + ".part")
             tmp.write_bytes(resp.content)
             tmp.replace(dest)
-            return FetchResult(name, url, str(dest), "downloaded", 200, _iso(time.time()))
+            return FetchResult(name, url, dest.name, "downloaded", 200, _iso(time.time()))
         previous = _iso(dest.stat().st_mtime) if dest.exists() else None
         status = "not-updated" if resp.status_code == 403 and dest.exists() else "error"
         return FetchResult(
-            name, url, str(dest), status, resp.status_code, previous, resp.text[:300].strip()
+            name, url, dest.name, status, resp.status_code, previous, resp.text[:300].strip()
         )
     previous = _iso(dest.stat().st_mtime) if dest.exists() else None
-    return FetchResult(name, url, str(dest), "error", None, previous, last_error)
+    return FetchResult(name, url, dest.name, "error", None, previous, last_error)
 
 
 def fetch_all(raw_dir: Path, groups: tuple[str, ...] = GP_GROUPS) -> list[FetchResult]:
@@ -100,13 +100,25 @@ def fetch_all(raw_dir: Path, groups: tuple[str, ...] = GP_GROUPS) -> list[FetchR
     raw_dir.mkdir(parents=True, exist_ok=True)
     session = requests.Session()
     results: list[FetchResult] = []
-    for group in groups:
-        url = f"{GP_URL}?GROUP={group}&FORMAT=CSV"
-        results.append(fetch_one(group, url, raw_dir / f"gp_{group}.csv", MIN_REFRESH_S, session))
-        time.sleep(1.0)
-    results.append(
-        fetch_one("satcat", SATCAT_URL, raw_dir / "satcat.csv", SATCAT_REFRESH_S, session)
-    )
+    jobs = [
+        (group, f"{GP_URL}?GROUP={group}&FORMAT=CSV", raw_dir / f"gp_{group}.csv", MIN_REFRESH_S)
+        for group in groups
+    ]
+    jobs.append(("satcat", SATCAT_URL, raw_dir / "satcat.csv", SATCAT_REFRESH_S))
+    stopped = False
+    for name, url, dest, max_age in jobs:
+        if stopped:
+            # Usage policy: "immediately stop querying when it receives any non-HTTP 200".
+            previous = _iso(dest.stat().st_mtime) if dest.exists() else None
+            results.append(
+                FetchResult(name, url, dest.name, "skipped", None, previous, "earlier HTTP error")
+            )
+            continue
+        result = fetch_one(name, url, dest, max_age, session)
+        results.append(result)
+        stopped = result.http_status is not None and result.http_status != 200
+        if result.status == "downloaded":
+            time.sleep(1.0)
     (raw_dir / "manifest.json").write_text(json.dumps([asdict(r) for r in results], indent=2))
     return results
 

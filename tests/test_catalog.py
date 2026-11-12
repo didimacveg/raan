@@ -5,8 +5,15 @@ from datetime import UTC, datetime
 import pytest
 
 from raan.catalog import classify
-from raan.catalog.build import build_catalog, merge_groups, parse_epoch, valid_gp
-from raan.catalog.fetch import fetch_one
+from raan.catalog.build import (
+    adopt_newer,
+    build_catalog,
+    incomplete_inputs,
+    merge_groups,
+    parse_epoch,
+    valid_gp,
+)
+from raan.catalog.fetch import GP_GROUPS, fetch_all, fetch_one
 
 
 def gp(cat, name="X", epoch="2026-11-10T12:00:00.000000", n=15.5, e=0.0005, i=53.0):
@@ -177,3 +184,53 @@ def test_fetch_reports_error_when_no_previous_file(tmp_path):
     session = FakeSession([FakeResponse(404, b"nope")])
     result = fetch_one("g", "http://x", tmp_path / "gp.csv", max_age_s=0, session=session)
     assert result.status == "error" and session.calls == 1
+
+
+def test_manifest_never_contains_local_paths(tmp_path):
+    """The manifest is embedded in the published catalogue: file names only."""
+    dest = tmp_path / "deep" / "gp_active.csv"
+    session = FakeSession([FakeResponse(200, b"A\n1\n")])
+    result = fetch_one("active", "http://x", dest, max_age_s=0, session=session)
+    assert result.path == "gp_active.csv" and str(tmp_path) not in repr(result)
+
+
+def test_fetch_all_stops_at_the_first_http_error(tmp_path, monkeypatch):
+    """Usage policy: after any non-200 answer the client stops querying altogether."""
+    monkeypatch.setattr("raan.catalog.fetch.time.sleep", lambda s: None)
+    session = FakeSession([FakeResponse(200, b"A\n1\n"), FakeResponse(403, b"not updated")])
+    monkeypatch.setattr("raan.catalog.fetch.requests.Session", lambda: session)
+    results = fetch_all(tmp_path)
+    assert session.calls == 2
+    assert [r.status for r in results] == ["downloaded", "error"] + ["skipped"] * 4
+    assert all("/" not in r.path for r in results)
+
+
+def test_incomplete_inputs_are_reported():
+    full = {g: [gp(k + 1)] for k, g in enumerate(GP_GROUPS)}
+    satcat = {1: {"OBJECT_TYPE": "PAY"}}
+    assert incomplete_inputs(full, satcat) == []
+    missing = {g: rows for g, rows in full.items() if g != "analyst"}
+    assert incomplete_inputs(missing, satcat) == ["gp_analyst.csv is missing"]
+    garbage = {**full, "active": [{"<html>": "error"}]}
+    assert incomplete_inputs(garbage, satcat) == ["gp_active.csv has no valid element set"]
+    assert incomplete_inputs(full, {}) == ["satcat.csv is missing or empty"]
+
+
+def test_fallback_catalogue_is_adopted_only_when_newer_and_valid(tmp_path):
+    import json
+
+    def write(path, stamp, ids=(1,)):
+        path.write_text(json.dumps({"meta": {"generated_at": stamp}, "cols": {"id": list(ids)}}))
+
+    out, cached = tmp_path / "catalog.json", tmp_path / "cached.json"
+    write(out, "2026-11-11T22:42:12Z")
+    assert not adopt_newer(cached, out)  # no cache yet (first run)
+    write(cached, "2026-11-10T05:17:00Z")
+    assert not adopt_newer(cached, out)  # older than the committed snapshot
+    write(cached, "2026-11-12T05:17:00Z", ids=())
+    assert not adopt_newer(cached, out)  # empty catalogue
+    cached.write_text("<html>not json</html>")
+    assert not adopt_newer(cached, out)
+    write(cached, "2026-11-12T05:17:00Z")
+    assert adopt_newer(cached, out)
+    assert json.loads(out.read_text())["meta"]["generated_at"] == "2026-11-12T05:17:00Z"
