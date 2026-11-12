@@ -42,7 +42,10 @@ def read_gp_csv(path: Path) -> list[dict]:
 
 def read_satcat(path: Path) -> dict[int, dict]:
     with path.open(newline="", encoding="utf-8") as fh:
-        return {int(row["NORAD_CAT_ID"]): row for row in csv.DictReader(fh)}
+        reader = csv.DictReader(fh)
+        if "NORAD_CAT_ID" not in (reader.fieldnames or []):
+            return {}  # an error page saved as satcat.csv
+        return {int(row["NORAD_CAT_ID"]): row for row in reader}
 
 
 def valid_gp(row: dict) -> bool:
@@ -75,6 +78,47 @@ def merge_groups(groups: dict[str, list[dict]]) -> tuple[list[dict], set[int]]:
             if cat not in merged or parse_epoch(row["EPOCH"]) > parse_epoch(merged[cat]["EPOCH"]):
                 merged[cat] = row
     return [merged[k] for k in sorted(merged)], active_ids
+
+
+def incomplete_inputs(groups: dict[str, list[dict]], satcat: dict[int, dict]) -> list[str]:
+    """Reasons why the downloaded files cannot give a complete catalogue (empty = fine).
+
+    A 200 answer with an error page instead of CSV, or a group that failed to download, would
+    otherwise shrink the catalogue without any error.
+    """
+    problems = []
+    for group in GP_GROUPS:
+        rows = groups.get(group)
+        if rows is None:
+            problems.append(f"gp_{group}.csv is missing")
+        elif not any(valid_gp(row) for row in rows):
+            problems.append(f"gp_{group}.csv has no valid element set")
+    if not satcat:
+        problems.append("satcat.csv is missing or empty")
+    return problems
+
+
+EXIT_NOT_REFRESHED = 3  # inputs incomplete: nothing was rebuilt, the previous catalogue stands
+
+
+def adopt_newer(candidate: Path, out: Path) -> bool:
+    """Copy ``candidate`` over ``out`` if it is a valid catalogue with a later snapshot time."""
+    try:
+        cand = json.loads(candidate.read_text())
+        cand_time = cand["meta"]["generated_at"]
+        if not cand["cols"]["id"]:
+            return False
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+    try:
+        current_time = json.loads(out.read_text())["meta"]["generated_at"]
+    except (OSError, ValueError, KeyError, TypeError):
+        current_time = ""
+    if cand_time <= current_time:  # ISO 8601 UTC strings sort chronologically
+        return False
+    ensure(out.parent)
+    out.write_text(json.dumps(cand, separators=(",", ":")))
+    return True
 
 
 def _index(values: list[str]) -> tuple[list[str], list[int]]:
@@ -195,6 +239,12 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=WEB_DATA / "catalog.json")
     parser.add_argument("--archive", type=Path, default=None, help="also write a daily snapshot")
     parser.add_argument(
+        "--fallback",
+        type=Path,
+        default=None,
+        help="catalogue saved by a previous run; used if the fetch fails and it is newer",
+    )
+    parser.add_argument(
         "--allow-partial", action="store_true", help="development only: build without `active`"
     )
     args = parser.parse_args()
@@ -207,12 +257,17 @@ def main() -> None:
         path = args.raw / f"gp_{group}.csv"
         if path.exists():
             groups[group] = read_gp_csv(path)
-    if "active" not in groups and not args.allow_partial:
-        raise SystemExit(
-            f"{args.raw}/gp_active.csv is missing — run with --fetch (CelesTrak allows one "
-            "download of this group per 2-hour update)."
-        )
     satcat = read_satcat(args.raw / "satcat.csv") if (args.raw / "satcat.csv").exists() else {}
+    problems = incomplete_inputs(groups, satcat)
+    if problems and not args.allow_partial:
+        # Never publish a silently smaller catalogue: the previous one is kept instead.
+        print(
+            f"incomplete CelesTrak inputs in {args.raw}: {'; '.join(problems)}. Run with --fetch "
+            "(CelesTrak allows one download of the big groups per 2-hour update)."
+        )
+        if args.fallback is not None and adopt_newer(args.fallback, args.out):
+            print(f"using the newer catalogue saved by a previous run ({args.fallback})")
+        raise SystemExit(EXIT_NOT_REFRESHED)
     newest = max((args.raw / f"gp_{g}.csv").stat().st_mtime for g in groups)
     catalog = build_catalog(
         groups, satcat, datetime.fromtimestamp(newest, UTC), load_manifest(args.raw)

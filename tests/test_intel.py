@@ -109,7 +109,7 @@ def test_snapshot_roundtrip_and_diff(tmp_path):
     review = Reviewer().run(findings, ctx.store)
     assert not review.rejected
     text = " ".join(f.render(ctx.store) for f in review.accepted)
-    assert "1 objects appeared, 1 are no longer listed" in text
+    assert "objects that appeared: 1; no longer listed: 1; with a newer element set: 1" in text
     assert "ISS (ZARYA) (+1.9" in text or "ISS (ZARYA) (+2.0" in text
     caveats = " ".join(f.caveat for f in review.accepted)
     assert "not validated manoeuvre detections" in caveats
@@ -156,3 +156,13 @@ def test_editor_accepts_faithful_rewrites_and_survives_api_errors():
     assert report["meta"]["writer"] == "claude"
     assert any("model call failed (TimeoutError)" in entry for entry in editor.log)
     assert all("- " in block for block in calls)  # the model only ever sees the cited facts
+
+
+def test_caveats_survive_a_model_rewrite():
+    """A rewritten paragraph must still carry the analyst's caveat, word for word."""
+    ctx = Context(catalog=small_catalog())
+    report = intel_run.run(ctx, editor=Editor(writer=lambda draft, facts: "Rewritten: " + draft))
+    headline = report["sections"][0]["paragraphs"][0]
+    assert headline["writer"] == "claude"
+    assert headline["caveat"].startswith("Positions on the site are SGP4 propagations")
+    assert "> Caveat: Positions on the site" in intel_run.to_markdown(report)

@@ -64,7 +64,7 @@ def ml_scores(names, hists, ivs, zs) -> tuple[dict[str, np.ndarray], dict[str, f
     feature_names: list[str] = []
     for n in names:
         feats[n], feature_names = detect.features(ivs[n], zs[n], hists[n].regime == "GEO")
-        labels[n] = detect.interval_labels(ivs[n], detect.cluster_truth(hists[n].maneuvers))
+        labels[n] = detect.interval_labels(ivs[n], detect.scored_truth(ivs[n], hists[n].maneuvers))
         masks[n] = detect.evaluation_mask(ivs[n], hists[n].maneuvers)
 
     scores: dict[str, np.ndarray] = {}
@@ -100,6 +100,78 @@ def burn_size_m(h: tle.History, truth: np.ndarray) -> np.ndarray:
     idx = np.clip(np.searchsorted(h.t, truth, side="left") - 1, 0, len(shift) - 1)
     # the step may register one interval late: take the larger of the two
     return np.maximum(shift[idx], shift[np.minimum(idx + 1, len(shift) - 1)])
+
+
+def chance_level(names, dets, truth, repeats: int = 200) -> dict:
+    """Score of a detector that fires as often and as long as ``dets`` but at random times.
+
+    Every detection of a satellite is moved by one random circular offset inside that satellite's
+    labelled period and matched with the same rule. This is the floor against which the
+    event-level scores have to be read: the matching window is days wide and some satellites
+    manoeuvre every few weeks, so a few random alarms hit by luck.
+    """
+    rng = np.random.default_rng(SEED)
+    tp = fp = fn = 0.0
+    for n in names:
+        events = truth[n]
+        lo = events[0] - 5 * 86400.0
+        span = events[-1] + 5 * 86400.0 - lo
+        for _ in range(repeats):
+            offset = rng.uniform(0.1, 0.9) * span
+            moved = []
+            for d in dets[n]:
+                start = (d.t_start - lo + offset) % span + lo
+                moved.append(detect.Detection(start, start + (d.t_end - d.t_start), 0, 0.0))
+            moved.sort(key=lambda d: d.t_start)
+            hits, _ = detect.match(moved, events)
+            tp += hits / repeats
+            fp += (len(moved) - hits) / repeats
+            fn += (len(events) - hits) / repeats
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    recall = tp / (tp + fn) if tp + fn else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    return {"precision": round(precision, 4), "recall": round(recall, 4), "f1": round(f1, 4),
+            "repeats": repeats}  # fmt: skip
+
+
+def quiet_noise_m(names, hists, ivs, min_days: float = 6.0) -> dict:
+    """|step statistic of the mean semi-major axis| on intervals far from any reported burn.
+
+    This is what the detector sees when nothing happened: a burn whose step is not clearly above
+    it cannot be told from noise in the element sets.
+    """
+    values = []
+    for n in names:
+        h, iv = hists[n], ivs[n]
+        shift = np.abs(detect.level_shift(h.a_km * 1000.0, h.t))
+        mid = (iv.t_start + iv.t_end) / 2
+        gap = np.min(np.abs(mid[:, None] - h.maneuvers[None, :]), axis=1) / 86400.0
+        quiet = detect.evaluation_mask(iv, h.maneuvers) & (gap > min_days) & (shift > 0)
+        values.append(shift[quiet])
+    v = np.concatenate(values)
+    return {
+        "intervals": int(len(v)),
+        "min_days_from_any_burn": min_days,
+        "median": round(float(np.median(v)), 2),
+        "p90": round(float(np.percentile(v, 90)), 2),
+        "p95": round(float(np.percentile(v, 95)), 2),
+    }
+
+
+def outside_history(h: tle.History) -> int:
+    """Reported burns with no element set on one side (before the first set or after the last)."""
+    return int(((h.maneuvers <= h.t[0]) | (h.maneuvers > h.t[-1])).sum())
+
+
+def bracketing_sets(h: tle.History, truth: np.ndarray) -> list[tuple[float, float]]:
+    """Epochs of the two consecutive element sets around each reported event.
+
+    The benchmark repository has no licence, so its label file is not republished: the site
+    only shows *which element-set interval* contains a reported manoeuvre (about one day wide),
+    which is what the detectors are scored against.
+    """
+    k = np.clip(np.searchsorted(h.t, truth, side="left"), 1, len(h.t) - 1)
+    return [(float(h.t[i - 1]), float(h.t[i])) for i in k]
 
 
 def confidence_fn(other_dets: list[detect.Detection]):
@@ -150,7 +222,7 @@ def main() -> None:
     per_sat: dict[str, dict] = {n: {} for n in names}
     dets: dict[str, dict[str, list[detect.Detection]]] = {m: {} for m in METHODS}
     found: dict[str, dict[str, np.ndarray]] = {m: {} for m in METHODS}
-    truth = {n: detect.cluster_truth(hists[n].maneuvers) for n in names}
+    truth = {n: detect.scored_truth(ivs[n], hists[n].maneuvers) for n in names}
     for method in METHODS:
         for n in names:
             counts, d, _truth, f = detect.evaluate(
@@ -276,8 +348,8 @@ def main() -> None:
                 for d in dets[method][n]
             ]  # fmt: skip
         timeline["truth"] = [
-            {"t": round(float(tm)), **{m: bool(found[m][n][k]) for m in METHODS}}
-            for k, tm in enumerate(truth[n])
+            {"t0": round(t0), "t1": round(t1), **{m: bool(found[m][n][k]) for m in METHODS}}
+            for k, (t0, t1) in enumerate(bracketing_sets(h, truth[n]))
         ]
         mask = detect.evaluation_mask(iv, h.maneuvers)
         lo = max(0, int(np.argmax(mask)) - 5)
@@ -303,6 +375,9 @@ def main() -> None:
                 "paper": "arXiv:2212.08662",
                 "labels": "manoeuvre times reported through the International DORIS Service "
                 "(LEO) and operator records (Fengyun, GEO)",
+                "redistribution": "the benchmark repository has no licence: it is not vendored, "
+                "and reported manoeuvre times are published only as the element-set interval "
+                "that contains them",
                 "elements": "TLE histories originally from Space-Track.org (18 SDS)",
             },
             "protocol": {
@@ -320,12 +395,16 @@ def main() -> None:
             "element_sets": int(sum(len(hists[n].t) for n in names)),
             "reported_maneuvers": int(sum(len(hists[n].maneuvers) for n in names)),
             "maneuver_events": int(sum(len(truth[n]) for n in names)),
+            # reported before the first / after the last element set of a history: not scorable
+            "maneuvers_outside_element_sets": int(sum(outside_history(hists[n]) for n in names)),
         },
         "summary": summary,
+        "chance": {m: chance_level(names, dets[m], truth) for m in METHODS},
         "lag_sensitivity": lag_sensitivity,
         "physics_ablation": ablation,
         "curves": curves,
         "recall_by_size_leo": by_size,
+        "noise_floor_leo_m": quiet_noise_m(regimes["LEO"], hists, ivs),
         "large_burn_misses": large_burn_misses,
         "importance": [{"feature": f, "gain": round(g, 4)} for f, g in importance],
         "satellites": satellites,

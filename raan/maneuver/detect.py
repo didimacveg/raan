@@ -218,6 +218,21 @@ def cluster_truth(maneuvers: np.ndarray, gap_days: float = CLUSTER_DAYS) -> np.n
     return maneuvers[keep]
 
 
+def scored_truth(iv: Intervals, maneuvers: np.ndarray) -> np.ndarray:
+    """Reported events that the element sets can show at all, clustered.
+
+    A burn reported before the first element set of the history, or after the last one, has no
+    interval around it: nothing can detect it and nothing can measure its size. Such burns are
+    left out of the evaluation instead of being counted as misses (the benchmark histories
+    start a few days after the first reported burn of most satellites).
+    """
+    maneuvers = np.asarray(maneuvers, dtype=float)
+    if len(maneuvers) == 0 or len(iv) == 0:
+        return maneuvers[:0]
+    inside = (maneuvers > iv.t_start[0]) & (maneuvers <= iv.t_end[-1])
+    return cluster_truth(maneuvers[inside])
+
+
 def detections_from_scores(iv: Intervals, score: np.ndarray, threshold: float) -> list[Detection]:
     """Consecutive flagged intervals (allowing one unflagged gap) form a single detection."""
     flagged = np.flatnonzero(score >= threshold)
@@ -310,6 +325,6 @@ def evaluate(
     mask = evaluation_mask(iv, maneuvers)
     masked = np.where(mask, score, -np.inf)
     dets = detections_from_scores(iv, masked, threshold)
-    truth = cluster_truth(maneuvers)
+    truth = scored_truth(iv, maneuvers)
     tp, found = match(dets, truth, lag_days)
     return Counts(tp, len(dets) - tp, len(truth) - tp), dets, truth, found

@@ -37,6 +37,8 @@ export interface ManeuverData {
   }
   totals: { satellites: number; element_sets: number; reported_maneuvers: number; maneuver_events: number }
   summary: Record<Method, Record<'ALL' | 'LEO' | 'GEO', Counts>>
+  /** same detections moved to random times, same matching rule */
+  chance?: Record<Method, { precision: number; recall: number; f1: number }>
   lag_sensitivity: Record<Method, Record<string, Counts>>
   physics_ablation: Record<string, Record<'ALL' | 'LEO' | 'GEO', Counts>>
   recall_by_size_leo: ({ lo_m: number; hi_m: number | null; n: number } & Record<Method, number>)[]
@@ -66,7 +68,8 @@ interface Timeline {
   satcat: number
   regime: string
   detections: Record<Method, Detection[]>
-  truth: ({ t: number } & Record<Method, boolean>)[]
+  /** epochs of the two element sets that bracket each reported manoeuvre (not the label itself) */
+  truth: ({ t0: number; t1: number } & Record<Method, boolean>)[]
   series: { t: number[]; a_ref_km: number; a_m: number[]; inc_deg: number[] }
 }
 
@@ -232,7 +235,9 @@ function TimelineChart({
   const hi = Math.max(...values)
   const pad = Math.max((hi - lo) * 0.08, 1)
   const dets = tl.detections[method].filter((d) => d.t_end >= t0 && d.t_start <= t1)
-  const truth = tl.truth.filter((u) => u.t >= t0 && u.t <= t1)
+  const truth = tl.truth
+    .map((u) => ({ ...u, t: (u.t0 + u.t1) / 2 }))
+    .filter((u) => u.t >= t0 && u.t <= t1)
   const color = METHODS.find((m) => m.key === method)!.color
   const years = (t1 - t0) / (365.25 * 86400)
   const ticks = useMemo(() => {
@@ -297,16 +302,18 @@ function TimelineChart({
             idx.map((k) => <circle key={k} cx={x(t[k])} cy={y(a_m[k])} r={1.8} fill="#0b1030" />)}
           {truth.map((u) => (
             <g
-              key={u.t}
+              key={u.t0}
               onMouseMove={() =>
                 setTip({
                   x: x(u.t),
                   y: -LANE + 2,
                   content: (
                     <>
-                      Reported manoeuvre
+                      Reported manoeuvre between the element sets of
                       <br />
-                      <b>{fmtUtc(u.t, false)}</b>
+                      <b>
+                        {fmtUtc(u.t0, false)} and {fmtUtc(u.t1, false)}
+                      </b>
                       <small>{u[method] ? 'found by this detector' : 'missed by this detector'}</small>
                     </>
                   ),
@@ -634,8 +641,8 @@ export default function ManeuverPage({ route }: { route: Route }) {
               </table>
             </div>
             <p className="muted" style={{ marginTop: 8 }}>
-              The first row is what the brief asked for literally: threshold single-interval jumps and
-              RTN residuals. Every bad element set fires it twice. Requiring an RTN confirmation
+              The first row is the obvious first design: threshold single-interval jumps and RTN
+              residuals. Every bad element set fires it twice. Requiring an RTN confirmation
               (last row) removed true detections faster than false ones.
             </p>
           </div>
@@ -681,6 +688,13 @@ export default function ManeuverPage({ route }: { route: Route }) {
               if the burn falls between two days before its first flagged interval and the end of its
               last. One detection, one event. Changing the two days to one or three moves F1 by{' '}
               {fmt(Math.abs(data.lag_sensitivity.ml['3.0'].f1 - data.lag_sensitivity.ml['1.0'].f1), 3)}.
+              {data.chance && (
+                <>
+                  {' '}
+                  The window is generous, so the floor matters: the classifier's own detections moved
+                  to random times score F1 {fmt(data.chance.ml.f1, 2)} under the same rule.
+                </>
+              )}
             </p>
           </div>
           <div className="panel prose">
@@ -701,7 +715,10 @@ export default function ManeuverPage({ route }: { route: Route }) {
                 {data.meta.dataset.name}
               </a>{' '}
               at commit {data.meta.dataset.commit.slice(0, 7)} ({data.meta.dataset.paper}). Element sets
-              originally from Space-Track.org; labels via the International DORIS Service. Code{' '}
+              originally from Space-Track.org; labels via the International DORIS Service. The
+              benchmark repository has no licence, so it is not copied here: this site shows only
+              series derived from it, and each reported manoeuvre only as the pair of element sets
+              around it. Code{' '}
               {data.meta.code_version} · {Math.round(data.meta.runtime_s)} s.
             </p>
           </div>

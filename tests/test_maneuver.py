@@ -144,3 +144,43 @@ def test_counts_arithmetic():
     c = detect.Counts(8, 2, 2) + detect.Counts(0, 0, 0)
     assert c.precision == 0.8 and c.recall == 0.8 and c.f1 == pytest.approx(0.8)
     assert detect.Counts().f1 == 0.0
+
+
+def test_published_truth_is_the_bracketing_element_set_interval_not_the_label():
+    from raan.maneuver.run import bracketing_sets
+
+    later = [L1.replace("19343.69339541", f"1934{k}.69339541") for k in (4, 5, 6)]
+    h = tle.history_from_pairs("x", [(L1, L2)] + [(l1, L2) for l1 in later])
+    burn = h.t[1] + 3 * 3600.0 + 17.0  # 03:00:17 after the second set
+    (t0, t1), (b0, b1), (a0, a1) = bracketing_sets(h, np.array([burn, h.t[0] - 9e5, h.t[-1] + 9e5]))
+    assert (t0, t1) == (h.t[1], h.t[2]) and t0 < burn <= t1
+    assert (b0, b1) == (h.t[0], h.t[1])  # before the first set: clamped to the first interval
+    assert (a0, a1) == (h.t[2], h.t[3])  # after the last set: clamped to the last interval
+    assert burn not in (t0, t1)
+
+
+def test_chance_level_is_low_for_sparse_events_and_deterministic():
+    from raan.maneuver.run import chance_level
+
+    class H:
+        maneuvers = np.arange(20) * 60 * 86400.0  # one burn every 60 days
+
+    dets = {"s": [detect.Detection(k * 60 * 86400.0, k * 60 * 86400.0 + 86400.0, 0, 9.0)
+                  for k in range(20)]}  # fmt: skip
+    perfect, _ = detect.match(dets["s"], H.maneuvers)
+    assert perfect == 20
+    one = chance_level(["s"], dets, {"s": H.maneuvers}, repeats=50)
+    assert one == chance_level(["s"], dets, {"s": H.maneuvers}, repeats=50)
+    assert one["f1"] < 0.2  # the 3.25-day window covers ~5% of a 60-day cycle
+
+
+def test_burns_outside_the_element_set_history_are_not_scored():
+    """No element set before/after a burn → it cannot be detected, so it is not a miss."""
+    iv = make_intervals(30)  # element sets at days 0..30
+    burns = np.array([-6.4, -5.0, 10.5, 31.2]) * 86400.0
+    assert detect.scored_truth(iv, burns).tolist() == [10.5 * 86400.0]
+    score = np.zeros(30)
+    score[10] = 10
+    counts, _dets, truth, found = detect.evaluate(iv, score, burns, 5.0)
+    assert (counts.tp, counts.fp, counts.fn) == (1, 0, 0) and found.tolist() == [True]
+    assert len(detect.scored_truth(iv, np.array([]))) == 0

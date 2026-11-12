@@ -139,8 +139,8 @@ class CatalogWatch:
                 Finding(
                     self.name,
                     "Changes since the previous snapshot",
-                    "Since {diff.previous}: {diff.new} objects appeared, {diff.gone} are no "
-                    "longer listed and {diff.updated} received a newer element set.",
+                    "Since {diff.previous}: objects that appeared: {diff.new}; no longer "
+                    "listed: {diff.gone}; with a newer element set: {diff.updated}.",
                     ["diff.previous", "diff.new", "diff.gone", "diff.updated"],
                     caveat="An object leaving the list can mean decay, loss of tracking or a "
                     "change of CelesTrak group; the snapshot alone cannot tell which.",
@@ -196,10 +196,14 @@ class ManeuverWatch:
         if ctx.diff is not None and ctx.catalog is not None:
             cols, d = ctx.catalog["cols"], ctx.catalog["dict"]
             active = d["type"].index("active")
+            leo = d["regime"].index("LEO")
+            # LEO only: in high or eccentric orbits (e.g. MMS, a ~ 100,000 km) two consecutive
+            # element sets differ by tens of km of semi-major axis from fitting noise alone.
             ranked = sorted(
                 (
                     c for c in ctx.diff["changes"]
                     if cols["type"][c["index"]] == active
+                    and cols["regime"][c["index"]] == leo
                     and abs(c["da_m"]) >= CHANGE_MIN_M
                     and c["perigee_km"] >= CHANGE_MIN_PERIGEE_KM
                 ),
@@ -207,7 +211,7 @@ class ManeuverWatch:
             )  # fmt: skip
             src = "data branch (daily snapshots)"
             s.add("change.count", len(ranked),
-                  f"Active payloads whose mean semi-major axis changed by ≥ {CHANGE_MIN_M:g} m",
+                  f"Active LEO payloads whose mean semi-major axis changed by ≥ {CHANGE_MIN_M:g} m",
                   src, SITE + "#/")  # fmt: skip
             parts, ids = [], ["change.count"]
             for rank, c in enumerate(ranked[:5], start=1):
@@ -224,14 +228,15 @@ class ManeuverWatch:
                 Finding(
                     self.name,
                     "Orbit changes since the previous snapshot",
-                    "{change.count} active payloads above 300 km changed their mean semi-major "
-                    "axis by at least 100 m between snapshots."
+                    "{change.count} active LEO payloads with perigee above 300 km changed their "
+                    "mean semi-major axis by at least 100 m between snapshots."
                     + (f" Largest: {listing}." if parts else ""),
                     ids,
                     caveat="These are differences between two published element sets, not "
                     "validated manoeuvre detections: one pair has no noise baseline, and an "
-                    "orbit-determination update produces the same signature. The benchmarked "
-                    "detector needs about 30 daily snapshots per object.",
+                    "orbit-determination update produces the same signature. Most entries are "
+                    "satellites raising or lowering their orbit after launch or before disposal. "
+                    "The benchmarked detector needs about 30 daily snapshots per object.",
                 )  # fmt: skip
             )
         return findings
