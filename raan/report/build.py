@@ -164,7 +164,20 @@ code { font-family: 'DejaVu Sans Mono', monospace; font-size: 8pt; }
 """
 
 
-def build_html(col: dict, man: dict, cat: dict) -> str:
+FEATURE_NAMES = {
+    "risk_mean": "the mean of the risk history",
+    "risk": "the latest risk",
+    "absz_shift_a": "the semi-major-axis step",
+}
+
+
+def sci(x: float) -> str:
+    """1.17e-07 → '1.2 × 10<sup>−7</sup>'."""
+    mantissa, exponent = f"{x:.1e}".split("e")
+    return f"{mantissa} × 10<sup>−{abs(int(exponent))}</sup>" if int(exponent) < 0 else f"{x:.1e}"
+
+
+def build_html(col: dict, man: dict, cat: dict, ver: dict) -> str:
     by = {r["key"]: r for r in col["results"]}
     lrp, gate, direct, gru = by["lrp"], by["gbm_gate"], by["gbm_direct"], by.get("gru")
     ds, sel = col["dataset"], col["selection"]
@@ -173,7 +186,15 @@ def build_html(col: dict, man: dict, cat: dict) -> str:
     fnp = col["false_negatives"]["lrp"]
     tr6 = next(b for b in col["transition"]["train_protocol"] if b["lo"] == -6)
     te6 = next(b for b in col["transition"]["test"] if b["lo"] == -6)
-    small = man["recall_by_size_leo"][0]
+    small, mid = man["recall_by_size_leo"][0], man["recall_by_size_leo"][1]
+    noise = man["noise_floor_leo_m"]
+    worst_sat = min(man["satellites"], key=lambda x: x["metrics"]["ml"]["f1"])
+    d_lo, d_hi = gate["delta_vs_reference_ci95"]
+    interval_verdict = (
+        "the bootstrap interval of the difference contains zero"
+        if d_lo <= 0 <= d_hi
+        else "the bootstrap interval of the difference excludes zero"
+    )
     lbm = man["large_burn_misses"]
     cal = col["calibration"]
 
@@ -225,8 +246,8 @@ def build_html(col: dict, man: dict, cat: dict) -> str:
         for x in man["satellites"]
     )
     gru_sentence = (
-        f" The GRU scores {gru['L']:.2f}: it misses as many high-risk events as the naive "
-        f"forecast ({gru['fn']}) with {gru['fp']} false alarms against {lrp['fp']}."
+        f" The GRU scores {gru['L']:.2f}: it misses {gru['fn']} high-risk events (naive "
+        f"forecast: {lrp['fn']}) and raises {gru['fp']} false alarms against {lrp['fp']}."
         if gru
         else ""
     )
@@ -238,22 +259,25 @@ collision-risk forecasting on ESA conjunction data, and manoeuvre detection from
 sets</h1>
 <div class="authors">{brand.AUTHOR}</div>
 <div class="affil">Independent student project, Madrid · {today} · code and data pipeline:
-{brand.REPO_URL} · {brand.DISCLAIMER}</div>
+{brand.REPO_URL} · {brand.DISCLAIMER}<br>Written and coded with substantial help from an AI
+coding assistant (Claude Code); the author is responsible for every claim.</div>
 <div class="abstract"><b>Abstract.</b> This report documents three experiments built on public
-orbital data, each with its baseline reproduced before any model is trained. (i) A browser
-propagator initialised from OMM mean elements reproduces the 666 reference state vectors of the
-SGP4 verification set to {1.2e-7:.1e} km and renders the {meta["count"]:,} objects for which
-bulk elements are public. (ii) On ESA's Collision Avoidance Challenge dataset, the naive
+orbital data, each with its baseline reproduced before any model is trained. (i) The browser
+propagator reproduces the {ver["vectors"]} reference state vectors of the SGP4 verification set
+to {sci(ver["tle_max_km"])} km, and to {sci(ver["omm_max_km"])} km when initialised from OMM
+fields as the application does; it renders the {meta["count"]:,} objects for which bulk elements
+are public. (ii) On ESA's Collision Avoidance Challenge dataset, the naive
 "latest risk" forecast is reproduced exactly (L = {lrp["L"]:.3f}). A gradient-boosted gate model
 reaches L = {gate["L"]:.3f} on the test set, but cross-validation on the training set ranks it
-below the naive forecast ({gate["cv_L"]:.2f} vs {lrp["cv_L"]:.2f}) and the bootstrap interval of
-the difference contains zero; a direct regressor and a recurrent model are clearly worse. No
+below the naive forecast ({sel["cv_L_gbm_gate_nested"]:.2f} vs {lrp["cv_L"]:.2f}) and
+{interval_verdict}; a direct regressor and a recurrent model are clearly worse. No
 model is claimed to improve on the baseline, and the role of the documented selection bias of
 the dataset is quantified. (iii) On {tot["maneuver_events"]} operator-reported manoeuvre events
 of {tot["satellites"]} satellites, evaluated leave-one-satellite-out, a gradient-boosted
 classifier reaches F1 = {ms["ml"]["ALL"]["f1"]:.2f}, a physics baseline
 {ms["physics"]["ALL"]["f1"]:.2f} and CUSUM {ms["cusum"]["ALL"]["f1"]:.2f}; a detector using only
-the step in semi-major axis reaches {ab["a"]["ALL"]["f1"]:.2f}. All figures are regenerated from
+the step in semi-major axis reaches {ab["a"]["ALL"]["f1"]:.2f}, and the same detections placed
+at random times {man["chance"]["ml"]["f1"]:.2f}. All figures are regenerated from
 source by one command.</div>
 <div class="cols">
 
@@ -307,9 +331,14 @@ derived series are published.</p>
 <h3>3.1 Propagation and its verification</h3>
 <p>Positions are SGP4 propagations of the published elements in the TEME frame, computed in a
 Web Worker (satellite.js) for the visualisation and with the <i>sgp4</i> Python package in the
-pipeline. Both are tested against the verification file of Vallado et al.: 33 element sets, 666
-state vectors, maximum position difference 1.2 × 10<sup>−7</sup> km. One deliberately invalid
-element set in that file must be rejected, and is. The display interpolates between worker
+pipeline. Both are tested against the verification file of Vallado et al. (33 element sets,
+{ver["vectors"]} state vectors): the maximum position difference is {sci(ver["tle_max_km"])} km
+for satellite.js and {sci(ver["python_max_km"])} km for the Python package. One deliberately
+invalid element set in that file must be rejected, and is. The application does not read TLEs
+but OMM fields; through that route the largest difference is {sci(ver["omm_max_km"])} km, on a
+14-day orbit of eccentricity 0.97, because the library reads the epoch to the millisecond. For
+the same reason the absolute time of a displayed position is good to about a millisecond, a
+few metres along-track. The display interpolates between worker
 key-frames on the GPU (direction and radius separately, key-frames at most 240 s apart). Nothing
 shown is an observation.</p>
 <h3>3.2 Final-risk prediction</h3>
@@ -328,8 +357,12 @@ truly high-risk training events; all others receive −6.001. <i>Direct regressi
 on the clipped target. <i>Sequence model</i>: a GRU (32 hidden units) over the last eight CDMs
 with a gate head and a value head, three seeds averaged. Training uses events whose final CDM is
 within a day of TCA; each is also presented as it looked three and four days out. τ and all
-model selection use 5-fold cross-validation grouped by event, on the training set only. The test
-set is scored once per model. Uncertainty is a 2,000-resample event bootstrap, paired against
+model selection use 5-fold cross-validation grouped by event, on the training set only; test
+labels are never used to fit or tune anything. The test set was, however, scored more than once
+during development (for instance before and after a bug fix in one feature), so it is not a
+pristine hold-out. Two cross-validated losses are given for the gate: one with τ tuned on the
+very predictions it scores, which flatters the gate, and a nested one in which τ and the value
+model are chosen inside each fold. Uncertainty is a 2,000-resample event bootstrap, paired against
 LRP.</p>
 <h3>3.3 Manoeuvre detection</h3>
 <p>For consecutive element sets the pipeline computes the change in mean semi-major axis a and
@@ -344,8 +377,12 @@ larger of the a and i statistics. <i>CUSUM.</i> Page's two-sided cumulative sum 
 day-to-day changes of a and i. <i>Classifier.</i> LightGBM on the statistics above, RTN
 residuals, raw magnitudes and their values two sets before and after.</p>
 <p>Evaluation is at event level. Reported burns closer than 1.5 days form one event.
+{tot["maneuvers_outside_element_sets"]} reported burns fall before the first or after the last
+element set of their satellite's history; nothing can detect them and they are not scored.
 Consecutive flagged intervals form one detection, which explains an event if the burn lies
-between two days before its start and its end; matching is one-to-one. Thresholds, and the
+between two days before its start and its end; matching is one-to-one. Because that window
+is days wide, the floor is measured rather than assumed: each detector's own detections, moved
+to random times, are scored with the same rule. Thresholds, and the
 classifier itself, are chosen leave-one-satellite-out, so the figures for a satellite never use
 its labels.</p>
 <h3>3.4 Reporting</h3>
@@ -369,9 +406,10 @@ the model beats LRP.</caption>
 <figure>{fig_scores(col)}<figcaption><b>Figure 1.</b> Challenge loss with bootstrap intervals.
 Dashed: winning entry of the 2019 competition.</figcaption></figure>
 <p>The gate model has the lowest test loss of the models trained here ({gate["L"]:.3f}). It is
-nevertheless not reported as an improvement, for two reasons. First, the selection rule fixed in
-advance — lowest cross-validated loss on training data — prefers LRP ({sel["cv_L_lrp"]:.2f}
-against {sel["cv_L_gbm_gate"]:.2f}). Second, the 95% interval of the paired difference is
+nevertheless not reported as an improvement, for two reasons. First, the selection rule — lowest cross-validated loss on training data — prefers LRP:
+{sel["cv_L_lrp"]:.2f} against {sel["cv_L_gbm_gate"]:.2f} for the gate, and
+{sel["cv_L_gbm_gate_nested"]:.2f} once the threshold and the value model are also chosen inside
+each fold (the CV column of Table 1 shows the first, more favourable figure). Second, the 95% interval of the paired difference is
 [{gate["delta_vs_reference_ci95"][0]:.2f}, {gate["delta_vs_reference_ci95"][1]:.2f}]; the gate
 wins in {gate["p_better_than_reference"] * 100:.0f}% of resamples. Direct regression
 (L = {direct["L"]:.2f}) is pulled to the low-risk floor by the
@@ -407,9 +445,12 @@ leave-one-satellite-out, {tot["maneuver_events"]} events.</caption>
 <th class=n>R</th><th class=n>F1</th><th class=n>P</th><th class=n>R</th><th class=n>F1</th></tr>
 <tr><td></td><td colspan=3 class=n>LEO (10 sat.)</td><td colspan=3 class=n>GEO (5 sat.)</td>
 <td colspan=3 class=n>all</td></tr>{man_rows}</table>
-<p>The classifier is best overall (F1 = {ms["ml"]["ALL"]["f1"]:.2f}); the physics baseline is
-slightly better in GEO ({ms["physics"]["GEO"]["f1"]:.2f} against {ms["ml"]["GEO"]["f1"]:.2f}).
-CUSUM is worst: it integrates every noisy stretch of element sets into an alarm.</p>
+<p>The classifier is best overall (F1 = {ms["ml"]["ALL"]["f1"]:.2f}); in GEO the physics
+baseline scores {ms["physics"]["GEO"]["f1"]:.2f} against {ms["ml"]["GEO"]["f1"]:.2f}. CUSUM is
+worst: it integrates every noisy stretch of element sets into an alarm. For scale, the same
+detections at random times score F1 = {man["chance"]["ml"]["f1"]:.2f} (classifier),
+{man["chance"]["physics"]["f1"]:.2f} (physics) and {man["chance"]["cusum"]["f1"]:.2f} (CUSUM,
+which fires most often).</p>
 <table><caption><b>Table 3.</b> Ablation of the physics baseline (all satellites).</caption>
 <tr><th>Signal</th><th class=n>P</th><th class=n>R</th><th class=n>F1</th></tr>{abl_rows}</table>
 <p>The ablation (Table 3) carries the main lesson. Thresholding single-interval jumps and RTN
@@ -424,9 +465,13 @@ one-signal rule, not {(ms["ml"]["ALL"]["f1"] - ms["physics"]["ALL"]["f1"]) * 100
 over all satellites. Right: recall against the size of the step in mean semi-major axis at the
 reported burn (LEO).</figcaption></figure>
 <div class="cols">
-<p>Detectability is set by burn size (Figure 4, right). Of {small["n"]} reported LEO burns that
-changed the mean semi-major axis by less than 1 m, the best detector finds {small["ml"]}. Recall
-also drops above 100 m, for a different reason: {lbm["with_another_reported_burn_within_4_days"]}
+<p>Detectability is set by burn size (Figure 4, right). The step statistic itself has a
+noise floor: on {noise["intervals"]:,} LEO intervals more than {noise["min_days_from_any_burn"]:g}
+days from any reported burn its absolute value has a median of {noise["median"]:.1f} m and a
+95th percentile of {noise["p95"]:.1f} m. Accordingly the classifier finds {mid["ml"]} of
+{mid["n"]} burns that moved the mean semi-major axis by 1 to 3 m, and {small["ml"]} of the
+{small["n"]} below 1 m, too few to say more than that such burns are at the level of the
+noise. Recall also drops above 100 m, for a different reason: {lbm["with_another_reported_burn_within_4_days"]}
 of the {lbm["missed"]} large burns missed by the classifier have another reported burn within
 four days. These are orbit-change campaigns; at one element set per day they merge into one
 detection, which one-to-one matching credits once. Changing the matching lag from two days to
@@ -439,15 +484,17 @@ events.</caption><tr><th>Satellite</th><th class=n>n</th><th class=n>Physics</th
 <p>Per-satellite results (Table 4) vary more than the method averages: from
 {min(x["metrics"]["ml"]["f1"] for x in man["satellites"]):.2f} to
 {max(x["metrics"]["ml"]["f1"] for x in man["satellites"]):.2f} for the classifier. The weakest
-case is TOPEX (1992–2004), the oldest history in the benchmark; why — tracking quality of that
-era, burn sizes, or both — was not investigated.</p>
+case is {worst_sat["name"]}; why — tracking quality of its era, burn sizes, or both — was not
+investigated.</p>
 
 <h2>5 Discussion</h2>
 <p>The two experiments point the same way. In both, most of the achievable performance comes
 from one physically meaningful quantity — the latest risk, the step in semi-major axis — and
-the learned models mostly re-weight it. The classifier's most important input is the
-semi-major-axis step ({man["importance"][0]["gain"] * 100:.0f}% of split gain); the gate's is the
-mean of the risk history ({col["importance"][0]["gain"] * 100:.0f}%). Where the information is
+the learned models mostly re-weight it. The classifier's most important input is
+{FEATURE_NAMES.get(man["importance"][0]["feature"], man["importance"][0]["feature"])}
+({man["importance"][0]["gain"] * 100:.0f}% of split gain); the gate's is
+{FEATURE_NAMES.get(col["importance"][0]["feature"], col["importance"][0]["feature"])}
+({col["importance"][0]["gain"] * 100:.0f}%). Where the information is
 absent from the inputs — risk that appears in the last two days, burns below the noise of the
 element sets — no model recovers it.</p>
 <p>The second lesson is about evaluation rather than modelling. Had the test score alone been
@@ -460,19 +507,22 @@ holds for the manoeuvre ablation: without it, the classifier would appear to add
 <h2>6 Limitations</h2>
 <p><b>Collision.</b> With {ds["test"]["events_high_risk"]} high-risk test events every interval
 is wide. The data are from 2015–2019, anonymised, from one agency's missions, and "risk" is a
-computed probability: no collision is in the data. The models were evaluated on the test set
-once, but the author had read the challenge paper, which reports what worked. Nothing here
+computed probability: no collision is in the data. Test labels were never used for fitting
+or tuning, but the test set was scored several times during development and the challenge
+paper, which reports what worked, was read beforehand. The bootstrap resamples test events
+only; it does not include the variance of training. Nothing here
 transfers to operational prevalence.</p>
 <p><b>Manoeuvres.</b> Fifteen well-tracked satellites performing impulsive station-keeping.
 Low-thrust electric propulsion, which dominates today's large constellations, is not covered.
 Labels are operator reports: an unreported burn counts as a false alarm. Thresholds and model
-fits are out-of-sample, but the detector design (window lengths, the level-shift statistic) was
-iterated on these same satellites. The level-shift statistic needs three later element sets, so
+fits are out-of-sample, but the detector design (window lengths, the level-shift statistic,
+the matching rule) was iterated on these same satellites. The classifier uses the two element
+sets after an interval and the step statistic three, so it is a retrospective detector. The level-shift statistic needs three later element sets, so
 a detection is available about three days after the burn.</p>
 <p><b>Visualisation.</b> {meta["count"]:,} of {meta["satcat_on_orbit"]["total"]:,} on-orbit
 objects are shown; most debris and rocket bodies require a Space-Track account. SGP4 accuracy
 degrades by kilometres per day away from the element epoch. Frame rate was measured only under
-software rendering.</p>
+software rendering; on slow devices the page lowers its resolution and says so.</p>
 
 <h2>7 Future work</h2>
 <p>(1) A forward archive of daily CelesTrak snapshots started with this project; after about a
@@ -500,7 +550,7 @@ Spacetrack Report No. 3.</p>
 <p>Page, E. S. (1954). Continuous inspection schemes. Biometrika 41, 100–115.</p>
 <p>Shorten, D. P., et al. (2023). Wide-scale monitoring of satellite lifetimes: pitfalls and a
 benchmark dataset. arXiv:2212.08662.</p>
-<p>Uriot, T., Izzo, D., Simões, L., et al. (2020). Spacecraft Collision Avoidance Challenge:
+<p>Uriot, T., Izzo, D., Simões, L. F., et al. (2020). Spacecraft Collision Avoidance Challenge:
 design and results of a machine learning competition. arXiv:2008.03069.</p>
 <p>Uriot, T., Izzo, D., Martinez-Heras, J., et al. (2021). Collision Avoidance Challenge
 dataset. Zenodo. doi:10.5281/zenodo.4463683.</p>
@@ -514,11 +564,15 @@ Shorten et al. {brand.DISCLAIMER}</div>
 
 
 def main() -> None:
+    from raan.maneuver.tle import vallado_check
+
     col = json.loads((WEB_DATA / "collision.json").read_text())
     man = json.loads((WEB_DATA / "maneuvers.json").read_text())
     cat = json.loads((WEB_DATA / "catalog.json").read_text())
+    ver = json.loads((WEB_DATA / "verification.json").read_text())  # written by `make verify`
+    ver["python_max_km"] = vallado_check()["max_km"]
     html_path = ensure(REPORTS) / "RAAN_technical_report.html"
-    html_path.write_text(build_html(col, man, cat))
+    html_path.write_text(build_html(col, man, cat, ver))
     pdf_path = REPORTS / "RAAN_technical_report.pdf"
     script = ROOT / "web" / "scripts" / "pdf.cjs"
     try:

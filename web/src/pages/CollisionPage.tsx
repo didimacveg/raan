@@ -61,6 +61,8 @@ export interface CollisionData {
   selection: {
     cv_L_lrp: number
     cv_L_gbm_gate: number
+    /** threshold and value model chosen inside each fold */
+    cv_L_gbm_gate_nested?: number
     selected_by_rule: string
     oracle_threshold_diagnostic: { threshold: number; L: number }
   }
@@ -534,10 +536,16 @@ export default function CollisionPage() {
           <p>
             The best learned model scores L = {fmt(gate.L, 3)} on the test set against{' '}
             {fmt(lrp.L, 3)} for the naive forecast — but cross-validation on the training data said
-            the opposite ({fmt(data.selection.cv_L_gbm_gate, 2)} vs {fmt(data.selection.cv_L_lrp, 2)}), and the
-            95% interval of the difference, [{fmt(gate.delta_vs_reference_ci95[0], 2)},{' '}
-            {fmt(gate.delta_vs_reference_ci95[1], 2)}], includes zero. Choosing a model because it
-            wins on the test set is exactly the mistake this lab is built to avoid.
+            the opposite ({fmt(data.selection.cv_L_gbm_gate, 2)} vs {fmt(data.selection.cv_L_lrp, 2)}
+            {data.selection.cv_L_gbm_gate_nested != null &&
+              `, and ${fmt(data.selection.cv_L_gbm_gate_nested, 2)} when the threshold is also chosen inside each fold`}
+            ), and the 95% interval of the difference, [{fmt(gate.delta_vs_reference_ci95[0], 2)},{' '}
+            {fmt(gate.delta_vs_reference_ci95[1], 2)}],{' '}
+            {gate.delta_vs_reference_ci95[0] <= 0 && gate.delta_vs_reference_ci95[1] >= 0
+              ? 'includes zero'
+              : 'excludes zero'}
+            . Choosing a model because it wins on the test set is exactly the mistake this lab is
+            built to avoid.
           </p>
         </div>
         <div className="verdict__stats">
@@ -551,7 +559,7 @@ export default function CollisionPage() {
           </div>
           <div className="stat">
             <span className="stat__v">{Math.round(gate.p_better_than_reference * 100)}%</span>
-            <span className="stat__l">of bootstrap resamples where it wins (95% needed)</span>
+            <span className="stat__l">of bootstrap resamples where it wins (usual bar: 95%)</span>
           </div>
           <div className="stat">
             <span className="stat__v">{train.events_protocol_high_risk}</span>
@@ -736,7 +744,7 @@ export default function CollisionPage() {
             <p>
               Inputs: CDMs issued ≥ 2 days before closest approach. Target: risk in the last CDM,
               issued &lt; 1 day before. Thresholds and blend weights chosen by 5-fold grouped
-              cross-validation on training events. Test set scored once per model.
+              cross-validation on training events. Test labels are never used for fitting or tuning; the test set was scored more than once during development.
             </p>
           </div>
           <div className="panel prose">

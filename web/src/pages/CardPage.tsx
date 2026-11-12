@@ -13,6 +13,7 @@ interface Data {
   col: CollisionData
   man: ManeuverData
   cat: CatalogMeta
+  ver: { vectors: number; tle_max_km: number; omm_max_km: number }
 }
 interface Bar {
   label: string
@@ -130,12 +131,15 @@ function render(id: string, d: Data): ReactNode {
       return (
         <Shell n="02" eyebrow="Verification · before anything else" title={<>My browser propagator vs the reference SGP4: tested, not assumed.</>} source="Reference: Vallado et al., Revisiting Spacetrack Report #3 (AIAA 2006-6753). Test in the repo.">
           <div className="cbig mono">
-            0.12 <small>mm</small>
+            {(d.ver.tle_max_km * 1e6).toFixed(2)} <small>mm</small>
           </div>
-          <p className="clede">largest position difference over the whole verification set.</p>
+          <p className="clede">
+            largest position difference over the whole verification set. Through the OMM fields the app
+            really uses: {(d.ver.omm_max_km * 1e5).toFixed(1)} cm, on one extreme 14-day orbit.
+          </p>
           <Stats
             items={[
-              ['666', 'reference state vectors compared'],
+              [String(d.ver.vectors), 'reference state vectors compared'],
               ['33', 'element sets, from LEO to deep space'],
               ['1', 'deliberately invalid set that must be rejected — and is'],
             ]}
@@ -171,7 +175,7 @@ function render(id: string, d: Data): ReactNode {
             </div>
           </div>
           <p className="clede">
-            It wins in {Math.round(by.gbm_gate.p_better_than_reference * 100)}% of bootstrap resamples. The rule I fixed beforehand needed cross-validation to agree. It did not.
+            It wins in {Math.round(by.gbm_gate.p_better_than_reference * 100)}% of bootstrap resamples. My rule: keep a model only if cross-validation on the training data agrees. It did not.
           </p>
         </Shell>
       )
@@ -190,7 +194,7 @@ function render(id: string, d: Data): ReactNode {
       )
     case 'bug':
       return (
-        <Shell n="07" eyebrow="Engineering · a bug my own test caught" title={<>One line was silently feeding my model the wrong number.</>} source="Commit history of the repository. The model was retrained after the fix; all published numbers are post-fix.">
+        <Shell n="07" eyebrow="Engineering · a bug my own test caught" title={<>One line was silently feeding my model the wrong number.</>} source="Replay: python -m raan.collision.replay_bug. The model was retrained after the fix; all published numbers are post-fix.">
           <pre className="ccode mono">
             <span className="del">- risk.nth(-2).reindex(table.index)</span>
             {'\n'}
@@ -199,7 +203,7 @@ function render(id: string, d: Data): ReactNode {
           <p className="clede">
             “Previous risk” was being matched by row label instead of by event. No error, no warning — just a wrong feature. A unit test with duplicated row labels failed and exposed it.
           </p>
-          <Stats items={[['0.607 → 0.627', 'test loss of the model, before → after the fix'], ['54 + 6', 'tests now run on every commit']]} />
+          <Stats items={[['0.607 → 0.627', 'test loss of the model, before → after the fix'], ['52%', 'of events had the wrong value in that column']]} />
         </Shell>
       )
     case 'negative':
@@ -227,7 +231,7 @@ function render(id: string, d: Data): ReactNode {
       )
     case 'mlphysics':
       return (
-        <Shell n="10" eyebrow="Manoeuvre detection · ablation" title={<>Machine learning won. The ablation says by 2 points, not 6.</>} source={`Event-level F1 on ${fmtInt(man.totals.maneuver_events)} reported manoeuvres. Thresholds and models chosen leave-one-satellite-out.`}>
+        <Shell n="10" eyebrow="Manoeuvre detection · ablation" title={<>Machine learning won. The ablation says by {Math.round((S.ml.ALL.f1 - A.a.ALL.f1) * 100)} points, not {Math.round((S.ml.ALL.f1 - S.physics.ALL.f1) * 100)}.</>} source={`Event-level F1 on ${fmtInt(man.totals.maneuver_events)} reported manoeuvres. Thresholds and models chosen leave-one-satellite-out.`}>
           <Bars
             max={1}
             bars={[
@@ -253,13 +257,13 @@ function render(id: string, d: Data): ReactNode {
             }))}
           />
           <p className="clede">
-            Burns that change the orbit by less than a metre are found {man.recall_by_size_leo[0].ml} times out of {man.recall_by_size_leo[0].n}. Of the {man.large_burn_misses.missed} big ones missed, {man.large_burn_misses.with_another_reported_burn_within_4_days} sit inside multi-burn campaigns.
+            Half of the burns between 1 and 3 m are missed ({man.recall_by_size_leo[1].ml} of {man.recall_by_size_leo[1].n} found): the detector's own noise is {man.noise_floor_leo_m ? man.noise_floor_leo_m.median.toFixed(1) : '—'} m (median) to {man.noise_floor_leo_m ? man.noise_floor_leo_m.p95.toFixed(1) : '—'} m (95th percentile). Of the {man.large_burn_misses.missed} big ones missed, {man.large_burn_misses.with_another_reported_burn_within_4_days} sit inside multi-burn campaigns.
           </p>
         </Shell>
       )
     case 'guard':
       return (
-        <Shell n="12" eyebrow="Agents · the model writes, the pipeline counts" title={<>An AI report where a made-up number cannot survive.</>} source="Number guard: raan/intel/core.py, with unit tests. Works without any API key (templates).">
+        <Shell n="12" eyebrow="Agents · the model writes, the pipeline counts" title={<>A report where every number must match a cited fact.</>} source="Number guard: raan/intel/core.py, with unit tests. Works without any API key (templates).">
           <div className="cguard">
             <div className="ok">
               <span className="mono">ACCEPTED</span>
@@ -285,7 +289,8 @@ export default function CardPage({ id }: { id: string }) {
       loadJson<CollisionData>('collision.json'),
       loadJson<ManeuverData>('maneuvers.json'),
       loadJson<{ meta: CatalogMeta }>('catalog.json'),
-    ]).then(([col, man, cat]) => setData({ col, man, cat: cat.meta }))
+      loadJson<Data['ver']>('verification.json'),
+    ]).then(([col, man, cat, ver]) => setData({ col, man, cat: cat.meta, ver }))
   }, [])
   if (!data) return null
   return <div className="card-stage">{render(id, data)}</div>
