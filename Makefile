@@ -3,7 +3,7 @@
 PY ?= .venv/bin/python
 SHORTEN_COMMIT := 5ea648955cc65dddd355f167ba1b51cff6cb8648
 
-.PHONY: help setup data catalog collision maneuvers intel report web test lint reproduce clean
+.PHONY: help setup data catalog collision maneuvers intel verify report web test lint reproduce clean
 
 help:
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -35,6 +35,9 @@ maneuvers: data ## manoeuvre detectors on the TLE benchmark
 intel: ## regenerate the intelligence report from the artefacts
 	$(PY) -m raan.intel.run
 
+verify: ## SGP4 vs Vallado: store the measured differences (quoted by the site and the report)
+	cd web && WRITE_VERIFICATION=1 npx vitest run src/twin/sgp4.test.ts
+
 report: ## technical report PDF
 	$(PY) -m raan.report.build
 
@@ -49,7 +52,7 @@ lint:
 	$(PY) -m ruff check .
 	cd web && npx tsc -b
 
-reproduce: data collision maneuvers intel report web ## everything except the live catalogue
+reproduce: data collision maneuvers intel verify report web ## everything except the live catalogue
 
 clean:
 	rm -rf web/dist .pytest_cache .ruff_cache
