@@ -9,12 +9,12 @@ models are trained; negative results are published with the reason they are nega
 
 **Site:** https://didimacveg.github.io/kessler/ · **Report:** [`reports/RAAN_technical_report.pdf`](reports/RAAN_technical_report.pdf)
 
-| Module | What it does | Real result (2026-11-11) |
+| Module | What it does | Result (run of 2026-11-12; catalogue snapshot of 2026-11-11) |
 |---|---|---|
-| **Orbital Digital Twin** | WebGL globe of every object with public bulk elements; SGP4 in a Web Worker; filters, time bar, orbit trace, provenance card per object | 20,152 objects (57 % of the 35,194 on orbit). Propagator vs Vallado's reference: 666 state vectors, max 1.2e-7 km |
-| **Collision Research Lab** | ESA Collision Avoidance Challenge: baselines reproduced, LightGBM + GRU, official metric, bootstrap, calibration, bias analysis | Naive forecast reproduced exactly (L = 0.694). Best model 0.627 on test but **not validated** (CV 0.98 vs 0.80; wins 86 % of resamples). GRU 1.32, direct regression 2.37 |
-| **Manoeuvre Detection** | Physics step detector, CUSUM, gradient-boosted classifier on 15 satellites with operator-reported manoeuvres, leave-one-satellite-out | F1: classifier 0.79, physics 0.73, CUSUM 0.51. Semi-major axis alone: 0.78 |
-| **Orbital Intelligence** | Agents that read pipeline outputs and write a report; a number guard rejects any figure not backed by a cited fact | 7 findings, 36 cited facts; runs without an API key |
+| **Orbital Digital Twin** | WebGL globe of every object with public bulk elements; SGP4 in a Web Worker; filters, time bar, orbit trace, provenance card per object | 20,152 objects (57 % of the 35,194 on orbit). Propagator vs Vallado's reference, 666 state vectors: max 1.2e-7 km through the TLE reader, 3.5e-5 km through the OMM fields the app uses. Positions themselves carry SGP4's kilometre-level error |
+| **Collision Research Lab** | ESA Collision Avoidance Challenge: baselines reproduced, LightGBM + GRU, official metric, bootstrap, calibration, bias analysis | Naive forecast reproduced exactly (L = 0.694). Best model 0.627 on test but **not validated** (cross-validation 0.98, nested 1.23, vs 0.80 for the naive forecast; wins 86 % of bootstrap resamples). GRU 1.32, direct regression 2.37 |
+| **Manoeuvre Detection** | Physics step detector, CUSUM, gradient-boosted classifier on 15 satellites with operator-reported manoeuvres, leave-one-satellite-out | 803 scorable events. F1: classifier 0.81, physics 0.74, CUSUM 0.52. Semi-major axis alone: 0.79. Same detections at random times: 0.09. Retrospective (about three days) |
+| **Orbital Intelligence** | Small deterministic programs ("agents") read pipeline outputs and fill report templates; a number guard rejects any figure not backed by a cited fact. A language model can optionally rephrase behind the same guard (never run with a real key so far) | 7 findings, 36 cited facts; no API key needed |
 | **Research & Benchmarking** | Experiments, dataset versions, model cards, PDF report | 6-page report |
 
 ## Run it
@@ -23,12 +23,15 @@ models are trained; negative results are published with the reason they are nega
 make setup        # Python venv + npm (Ubuntu/WSL, Python ≥ 3.11, Node ≥ 20)
 make data         # ESA CDM dataset (221 MB, checksum verified) + TLE benchmark at a pinned commit
 make reproduce    # collision models, manoeuvre detectors, report, PDF, site build (~10 min)
-make test         # 54 Python tests + 6 web tests
+make test         # Python tests + web tests (SGP4 vs Vallado, metric, protocol filters, report checks)
 cd web && npm run dev   # http://localhost:5173
 make catalog      # fresh CelesTrak snapshot — at most once per 2 hours (their usage policy)
+make verify       # SGP4 vs Vallado: writes the measured differences the site quotes
 ```
 
 Stress test of the renderer with synthetic copies: `http://localhost:5173/?stress=30000&fps=1`.
+On slow devices the globe switches to a light mode by itself (`?lite=0` turns that off);
+`node web/scripts/perf.cjs` measures the frame rate in headless Chromium.
 
 ## Layout
 
@@ -44,7 +47,7 @@ web/             Vite + React + three.js site (hash routing, static)
   public/data/   small JSON artefacts written by the pipeline
 tests/           pytest suite
 content/         LinkedIn posts, images and videos generated from the app
-docs/            RESEARCH · ARCHITECTURE · DECISIONS · STATUS · PASOS_PARA_DIEGO (Spanish)
+docs/            RESEARCH · ARCHITECTURE · DECISIONS · STATUS · PASOS_PARA_DIEGO and DEFENSA (Spanish)
 ```
 
 ## Data and credit
@@ -54,7 +57,8 @@ docs/            RESEARCH · ARCHITECTURE · DECISIONS · STATUS · PASOS_PARA_D
 * Conjunction data: ESA, *Collision Avoidance Challenge dataset*,
   [doi:10.5281/zenodo.4463683](https://doi.org/10.5281/zenodo.4463683), CC BY 4.0.
 * Manoeuvre benchmark: Shorten et al., [arXiv:2212.08662](https://arxiv.org/abs/2212.08662);
-  labels published through the International DORIS Service. Not vendored here.
+  labels published through the International DORIS Service. The benchmark repository has no
+  licence: it is not vendored, and only derived series are published.
 * SGP4 verification vectors: Vallado et al., AIAA 2006-6753.
 * Land outlines: Natural Earth (public domain).
 
@@ -70,4 +74,13 @@ probabilistic CDM forecasting. This project is deliberately smaller: open, repro
 The repository is named `kessler`, the project's working title; see `docs/RESEARCH.md` §5 for why
 the product is called RAAN.
 
-Built with substantial help from an AI coding assistant (Claude Code). Code: MIT licence.
+## How it was made
+
+Built with substantial help from an AI coding assistant (Claude Code), which wrote most of the
+code over one long session; a second, independent session reviewed it line by line, re-ran every
+experiment and corrected what did not hold (see `docs/DECISIONS.md`, entries 13 onwards, for
+what changed, including a correction to the manoeuvre scores). The documents in `docs/` are the
+assistant's working notes. The author set the question and the rules (public data only,
+baselines first, negative results published) and is responsible for every claim.
+
+Code: MIT licence.

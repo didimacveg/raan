@@ -1,5 +1,10 @@
 # Phase 0 · Research
 
+> Working notes written by the AI coding assistant (Claude Code) during the build session, in
+> its own first person ("I"); "the brief" is Diego's written instructions to it. Re-checked on 12 Nov 2026 by a second, independent session:
+> the Zenodo licence, the Space-Track redistribution text, the CelesTrak usage policy and the
+> challenge paper's result table were read again on the primary sources.
+
 _Last verified: 2026-11-11. Every claim below is tagged with how it was checked:_
 **[V]** = read on the primary source during this session · **[S]** = seen only in search-engine
 snippets, primary source not opened · **[A]** = my own analysis of downloaded data.
@@ -52,8 +57,7 @@ ephemerides *include planned manoeuvres*, which changes what "detection" means.
 * CDMs, analyst-object ephemerides and anything under an SSA Sharing Agreement are **not** basic
   data and are not used anywhere in this project.
 * Decision: Space-Track is an **optional** enrichment (full catalogue, historical GP). The project
-  must build and run with zero accounts. The fetcher exists (`raan.catalog.spacetrack`) but is
-  **untested against the live API** because I have no account in this session.
+  must build and run with zero accounts. **No Space-Track fetcher is implemented.**
 
 ### 1.4 ESA Collision Avoidance Challenge dataset
 
@@ -85,7 +89,8 @@ competition*, [arXiv:2008.03069](https://arxiv.org/abs/2008.03069) (Astrodynamic
 * **Latest Risk Prediction (LRP) baseline** = clipped naive forecast (the last risk available ≥ 2
   days before TCA): **L = 0.694** (MSE_HR 0.513, F2 0.739) on the full test set. "Out of the 97
   teams 12 managed to submit better solutions."
-* Winner (*sesc*): L = 0.556 (MSE_HR 0.407, F2 0.733). Final leaderboard top-3: 0.555, 0.574, 0.585.
+* Winner (*sesc*): L = 0.556 (MSE_HR 0.407, F2 0.733). Top three of Table 3: 0.556, 0.571, 0.585.
+* The paper gives both "96 teams" (abstract) and "97 teams" (the sentence about the baselines).
 * "many of the teams fail to obtain a better F2 value than the LRP baseline"; "most surveyed teams
   lamented a poor correlation between training and test sets performances"; 65 % framed the
   problem as static rather than as a time series — "a direct consequence of the great predictive
@@ -147,7 +152,8 @@ commit `5ea6489`, 2023-05-29) packages TLE histories and manoeuvre timestamps fo
   basic SSA data (redistributable with citation, §1.3); the manoeuvre timestamps are facts published
   by IDS/operators. Decision: **do not vendor the repository.** `make data` clones it at the pinned
   commit; this repo only publishes *derived* products (detections, metrics, per-epoch mean-element
-  series) with attribution. **Action for Diego (optional, polite):** e-mail the author to confirm he
+  series, and for each reported manoeuvre the pair of element-set epochs around it, not the
+  reported time) with attribution. **Action for Diego (optional, polite):** e-mail the author to confirm he
   is happy with that.
 * **Label quality:** LEO altimetry/geodesy missions → operator-reported burn times to the minute,
   the best public ground truth there is. The Fengyun GEO labels come from a different source and
@@ -155,7 +161,7 @@ commit `5ea6489`, 2023-05-29) packages TLE histories and manoeuvre timestamps fo
   on a handful of well-tracked science satellites* — it says little about low-thrust Starlink-style
   manoeuvring. This limitation is stated on the site.
 
-**Forward archive (starts today).** `.github/workflows/archive.yml` stores one compact CelesTrak
+**Forward archive (starts today).** `.github/workflows/pages.yml` (job `archive`) stores one compact CelesTrak
 snapshot per day in the `data` branch. This gives redistributable GP histories for *every* object
 from now on. Quality of what it will yield:
 

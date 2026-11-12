@@ -46,9 +46,15 @@ or any file server if Diego changes his mind. Pages needs the repository to be *
   and radius separately so objects follow their arc instead of cutting the chord. Key-frame
   spacing is capped at 240 s of simulated time (≤ 16° of arc in LEO). Rendering cost is therefore
   independent of propagation cost.
+* **Adaptive quality.** The engine picks a starting tier from the device (software renderer,
+  phone) and steps down while the frame rate stays under 24 fps: resolution first, and only if
+  that is not enough it draws one object in two or three and says so on screen. `?lite=0`
+  disables it. Measured with `web/scripts/perf.cjs` (software rendering, 20,152 objects):
+  14 → 33 fps at 1366×768, 6 → 28 fps on a 2× display, 13 → 54 fps on a phone viewport.
 * **Propagator:** `satellite.js` 7 (a port of Vallado's SGP4, WGS-72) initialised from **OMM**
   fields (`json2satrec`), because TLE cannot carry catalogue numbers > 99999. Verified against
-  Vallado's `tcppver.out`: 666 state vectors, max |Δr| = 1.2e-7 km (`web/src/twin/sgp4.test.ts`).
+  Vallado's `tcppver.out`: 666 state vectors, max |Δr| = 1.2e-7 km through the TLE reader and
+  3.5e-5 km through `json2satrec` (`web/src/twin/sgp4.test.ts`, stored in `verification.json`).
 * **Earth:** drawn at runtime from Natural Earth land polygons (public domain) into a canvas
   texture — no imagery licences, 100 kB instead of megabytes, and it matches the white lab look.
 * **Frames:** everything is rendered in the inertial TEME frame; the Earth mesh rotates by GMST.
@@ -73,10 +79,11 @@ reproduce` rebuilds everything from scratch.
 
 ### Scheduled jobs
 
-* `daily.yml` (cron, 1×/day): polite CelesTrak fetch → rebuild catalogue → append snapshot to the
-  `data` branch (the forward archive for manoeuvre detection) → regenerate the intelligence
-  report → deploy Pages. A CelesTrak 403 ("not updated since your last download" — likely on
-  shared runner IPs) is treated as *keep yesterday's snapshot*, never retried.
+* `pages.yml` (cron once a day, and every push to `main`), three jobs:
+  `build` (read-only token: one polite CelesTrak fetch → catalogue → intelligence report → site),
+  `archive` (the only job with write access: appends the day's snapshot to the `data` branch) and
+  `deploy` (GitHub Pages). Any non-200 answer from CelesTrak stops the fetch; the newest
+  catalogue already built is published instead and nothing is archived that day.
 * `ci.yml` (push/PR): ruff, pytest, vitest, type-check, production build.
 
 ### What is deliberately not here

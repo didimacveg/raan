@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-11-11T22:48:42Z",
+  "generated_at": "2026-11-12T16:27:28Z",
   "title": "RAAN orbital intelligence report",
   "writer": "template",
   "disclaimer": "Research project, not for operational use.",
@@ -67,7 +67,7 @@
    "paragraphs": [
     {
      "title": "Detector benchmark",
-     "text": "On 837 operator-reported manoeuvre events of 15 satellites, evaluated leave-one-satellite-out, the classifier reaches F1 0.79 (precision 0.83, recall 0.76), the physics baseline 0.73 and CUSUM 0.51. A detector using only the step in semi-major axis reaches 0.78.",
+     "text": "On 803 operator-reported manoeuvre events of 15 satellites, evaluated leave-one-satellite-out, the classifier reaches F1 0.81 (precision 0.83, recall 0.80), the physics baseline 0.74 and CUSUM 0.52. A detector using only the step in semi-major axis reaches 0.79.",
      "caveat": "Benchmark satellites perform impulsive station-keeping; low-thrust manoeuvres are not covered.",
      "facts": [
       "man.events",
@@ -356,32 +356,32 @@
   },
   "man.a_only.f1": {
    "id": "man.a_only.f1",
-   "value": 0.7758,
-   "text": "0.78",
+   "value": 0.7931,
+   "text": "0.79",
    "label": "Semi-major-axis-only detector, F1",
    "source": "web/public/data/maneuvers.json",
    "link": "https://didimacveg.github.io/kessler/#/maneuvers"
   },
   "man.cusum.f1": {
    "id": "man.cusum.f1",
-   "value": 0.5055,
-   "text": "0.51",
+   "value": 0.5157,
+   "text": "0.52",
    "label": "cusum detector, f1 (all satellites)",
    "source": "web/public/data/maneuvers.json",
    "link": "https://didimacveg.github.io/kessler/#/maneuvers"
   },
   "man.events": {
    "id": "man.events",
-   "value": 837,
-   "text": "837",
+   "value": 803,
+   "text": "803",
    "label": "Reported manoeuvre events",
    "source": "web/public/data/maneuvers.json",
    "link": "https://didimacveg.github.io/kessler/#/maneuvers"
   },
   "man.ml.f1": {
    "id": "man.ml.f1",
-   "value": 0.7945,
-   "text": "0.79",
+   "value": 0.8117,
+   "text": "0.81",
    "label": "ml detector, f1 (all satellites)",
    "source": "web/public/data/maneuvers.json",
    "link": "https://didimacveg.github.io/kessler/#/maneuvers"
@@ -396,16 +396,16 @@
   },
   "man.ml.recall": {
    "id": "man.ml.recall",
-   "value": 0.7646,
-   "text": "0.76",
+   "value": 0.797,
+   "text": "0.80",
    "label": "ml detector, recall (all satellites)",
    "source": "web/public/data/maneuvers.json",
    "link": "https://didimacveg.github.io/kessler/#/maneuvers"
   },
   "man.physics.f1": {
    "id": "man.physics.f1",
-   "value": 0.7322,
-   "text": "0.73",
+   "value": 0.7447,
+   "text": "0.74",
    "label": "physics detector, f1 (all satellites)",
    "source": "web/public/data/maneuvers.json",
    "link": "https://didimacveg.github.io/kessler/#/maneuvers"

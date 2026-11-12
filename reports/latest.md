@@ -1,6 +1,6 @@
 # RAAN orbital intelligence report
 
-_2026-11-11 22:48:42 UTC · written by: template · Research project, not for operational use._
+_2026-11-12 16:27:28 UTC · written by: template · Research project, not for operational use._
 
 ## Catalogue watch
 
@@ -14,7 +14,7 @@ _2026-11-11 22:48:42 UTC · written by: template · Research project, not for op
 
 ## Manoeuvre watch
 
-**Detector benchmark.** On 837 operator-reported manoeuvre events of 15 satellites, evaluated leave-one-satellite-out, the classifier reaches F1 0.79 (precision 0.83, recall 0.76), the physics baseline 0.73 and CUSUM 0.51. A detector using only the step in semi-major axis reaches 0.78.
+**Detector benchmark.** On 803 operator-reported manoeuvre events of 15 satellites, evaluated leave-one-satellite-out, the classifier reaches F1 0.81 (precision 0.83, recall 0.80), the physics baseline 0.74 and CUSUM 0.52. A detector using only the step in semi-major axis reaches 0.79.
 
 > Caveat: Benchmark satellites perform impulsive station-keeping; low-thrust manoeuvres are not covered.
 
@@ -60,11 +60,11 @@ _2026-11-11 22:48:42 UTC · written by: template · Research project, not for op
 | High-risk prevalence, training | 0.8% | [web/public/data/collision.json](https://didimacveg.github.io/kessler/#/collision) |
 | Test events | 2,167 | [web/public/data/collision.json](https://didimacveg.github.io/kessler/#/collision) |
 | High-risk training events under test conditions | 66 | [web/public/data/collision.json](https://didimacveg.github.io/kessler/#/collision) |
-| Semi-major-axis-only detector, F1 | 0.78 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
-| cusum detector, f1 (all satellites) | 0.51 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
-| Reported manoeuvre events | 837 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
-| ml detector, f1 (all satellites) | 0.79 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
+| Semi-major-axis-only detector, F1 | 0.79 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
+| cusum detector, f1 (all satellites) | 0.52 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
+| Reported manoeuvre events | 803 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
+| ml detector, f1 (all satellites) | 0.81 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
 | ml detector, precision (all satellites) | 0.83 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
-| ml detector, recall (all satellites) | 0.76 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
-| physics detector, f1 (all satellites) | 0.73 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
+| ml detector, recall (all satellites) | 0.80 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
+| physics detector, f1 (all satellites) | 0.74 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |
 | Benchmark satellites | 15 | [web/public/data/maneuvers.json](https://didimacveg.github.io/kessler/#/maneuvers) |

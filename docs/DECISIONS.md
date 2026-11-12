@@ -1,7 +1,8 @@
 # Decision log
 
-Decisions taken autonomously while Diego was away. Newest last. "Why" is always the goal in the
-brief: make a GMV/ESA/TU Delft engineer think *this student understands the problem*.
+Working notes written by the AI coding assistant (Claude Code) that built and later reviewed
+the project, for decisions it took without asking. Newest last. Decisions 1 to 12 are from the
+build session (11 Nov 2026); 13 onwards from the independent pre-launch review (12 Nov 2026).
 
 | # | Decision | Why | How to undo |
 |---|---|---|---|
@@ -17,3 +18,17 @@ brief: make a GMV/ESA/TU Delft engineer think *this student understands the prob
 | 10 | Physics baseline uses a median-of-three level shift, not raw jumps/RTN thresholds as the brief literally said. | Raw jumps score F1 0.35 (kept as an ablation row). RTN residuals are shown as evidence and used as classifier features. | — |
 | 11 | README and launch post say the project was built with an AI coding assistant. | Honesty rule; it will be obvious in any interview. | Delete the sentence. |
 | 12 | Posts 6, 11 and 12 are on Wed 9, Wed 23 and Tue 29 Dec. | 8 Dec is a holiday in Spain; 24 and 31 Dec avoided. | Edit `content/CALENDARIO.md`. |
+| 13 | Review work is on branch `claude/raan-pre-launch-review-8qqz4h`, created from `claude/epic-volta-jjkxwt`, not on that branch itself. | The review session can only push to its own branch. | Merge either branch; the review branch contains the other. |
+| 14 | `catalog.json` no longer embeds absolute local paths (fetch manifest keeps file names); the committed snapshot was edited in place, not re-fetched. | A published file should not reveal directory names of the machine that built it. | — |
+| 15 | Workflows rewritten: no default permissions, one job per privilege (`build` read-only, `archive` write, `deploy` pages), actions pinned to commit SHAs of the current releases (checkout v7, setup-python v7, setup-node v7, cache v6, artifacts v7/v8, pages v5). | Least privilege before going public; the old majors (v3/v4/v5) run on a Node runtime that is being retired. | Replace the SHAs by tags. |
+| 16 | **Manoeuvre evaluation changed:** burns reported before the first or after the last element set of a satellite's history (54 burns, 34 events) are no longer scored. F1 0.79/0.73/0.51 → 0.81/0.74/0.52; 837 → 803 events. | They cannot be detected by anything and were counted as misses; with a measured size of 0 m they also filled the "under 1 m" bin (34 of 45) and supported a false "1 m detection limit". | `detect.scored_truth` → `cluster_truth`. Not recommended. |
+| 17 | The "blind below 1 m" claim was removed everywhere. Replaced by the measured noise floor of the step statistic (median 0.36 m, p95 4.1 m on quiet LEO intervals) and the 1–3 m recall (29/66). | Only 11 real cases under 1 m. | — |
+| 18 | Reported manoeuvre times are published only as the pair of element-set epochs around them (`truth: t0, t1`), not as the label timestamp. | The benchmark repository has no licence (checked again: none at the pinned commit, which is still upstream HEAD). Rule: derived series only. | `run.py` `bracketing_sets`. |
+| 19 | Added a chance level for manoeuvre scores (same detections at random times: F1 0.09) and a nested cross-validation for the collision gate (1.23 vs 0.98 non-nested, naive 0.80). | The matching window is days wide; the old CV tuned its threshold on the predictions it scored. Both are questions an engineer will ask. Neither changes a conclusion. | — |
+| 20 | Removed the claims "the test set is scored once" and "rule fixed before looking at the test set" from report, site and posts. | Post 7 itself describes scoring the test set before and after a bug fix. The claims could not be defended. | — |
+| 21 | SGP4 verification is also run through the OMM route the app uses (max 3.5 cm on one extreme orbit); both figures are now read from `verification.json`, written by `make verify`. | The 0.12 mm test went through the TLE reader, which the app does not use. | — |
+| 22 | The bug story of post 7 was replayed (`python -m raan.collision.replay_bug` → 0.607, 52 % of events affected) and the post now says the line was written by the AI assistant. | The buggy version was never committed, so the figure was not traceable; the card cited "commit history". | — |
+| 23 | All 13 posts end with a sentence on AI assistance; first-person claims about things the assistant did were reworded; "I was told once…" removed; the "agents" post says they are plain programs and that the Claude path was never run with a real key. | Diego has to be able to defend every sentence as true. | Edit `content/CALENDARIO.md`. |
+| 24 | Globe: automatic light mode (resolution first, objects last, announced on screen), `?lite=0` / `?lite=1`. Daily orbit-change finding restricted to LEO. Report caveats are no longer delegated to the language model. Fetcher stops at the first non-200 answer and the build refuses incomplete inputs; a failed fetch publishes the newest catalogue already built instead of the committed one. | Performance on laptops and phones; a real pair of snapshots showed MMS (a ≈ 100,000 km) "moving" 76 km from fitting noise; CelesTrak policy says stop on any error. | — |
+| 25 | One real CelesTrak download was made during the review (12 Nov 10:21 UTC) and a second one for the deployment rehearsal, each more than two hours after the previous one. The committed snapshot is still the one of 11 Nov 22:42 UTC. | To test the modified fetcher end to end; the posts quote the 11 Nov figures. | — |
+

@@ -1,21 +1,29 @@
 # Calendario de LinkedIn · RAAN
 
 **13 publicaciones** (1 de lanzamiento + 12 en 6 semanas). Todas en inglés, listas para copiar.
-Tú las programas con el programador de LinkedIn (icono del reloj junto a «Publicar»); yo no
-publico nada.
+Tú las programas con el programador de LinkedIn (icono del reloj junto a «Publicar»); nadie
+publica nada por ti.
+
+Revisadas el 12-11-2026 por una segunda sesión independiente. Qué se cambió y por qué está en
+`docs/DECISIONS.md` (decisiones 13 a 24). Las preguntas que te pueden hacer en los comentarios
+de cada una, con su respuesta, están en `docs/DEFENSA.md`, sección 5.
 
 ## Antes de programar nada
 
-1. **Despliega la web primero** (`docs/PASOS_PARA_DIEGO.md`, pasos 1–3). Todas las publicaciones
-   enlazan a `https://didimacveg.github.io/kessler/`. Si cambias el nombre del repositorio, cambia
-   el enlace en los textos.
+1. **Despliega la web primero** (`docs/PASOS_PARA_DIEGO.md`, pasos 1 a 3). Todas las
+   publicaciones enlazan a `https://didimacveg.github.io/kessler/`. Si cambias el nombre del
+   repositorio, cambia el enlace en los textos.
 2. **El enlace va en el primer comentario**, no en el texto (LinkedIn reduce el alcance de las
    publicaciones con enlaces externos). Cada publicación trae su comentario preparado.
-3. **Comprueba los números el día antes.** Salen de los datos del 11-11-2026. Si has vuelto a
-   ejecutar `make reproduce` o el catálogo ha cambiado mucho, regenera las imágenes
-   (`cd web && npm run dev` y en otra terminal `node scripts/content.cjs all`) y ajusta las cifras
-   del texto con las de la web.
-4. Las horas son de **Madrid**. Martes–jueves por la mañana, con tres excepciones explicadas abajo.
+3. **Comprueba los números el día antes.** Los de colisiones y maniobras salen de
+   `make reproduce` (12-11-2026) y no cambian solos. Los del catálogo (publicaciones 0, 1 y 3)
+   son de la instantánea del 11-11-2026: la web se actualiza cada día y mostrará cifras un poco
+   distintas. Por eso esos textos dicen «in my 11 November snapshot». Si prefieres cifras del
+   día, cámbialas a mano por las que veas en la web.
+4. Las horas son de **Madrid**. Martes a jueves por la mañana, con tres excepciones explicadas
+   abajo.
+5. **Todas llevan la frase de que está hecho con ayuda de IA.** No la quites.
+6. **No hay rayas largas** en ningún texto. Si editas algo, no las añadas.
 
 ## Resumen
 
@@ -26,16 +34,16 @@ publico nada.
 | 2 | Mar 24 nov 2026 | 08:45 | Verificación de SGP4 | `images/02-sgp4-verification.png` |
 | 3 | Jue 26 nov 2026 | 09:15 | Los puntos no son «en directo» | `video/v2-starlink.mp4` |
 | 4 | Mar 1 dic 2026 | 08:45 | Reproducir la referencia antes de entrenar | `images/04-baseline-reproduced.png` |
-| 5 | Jue 3 dic 2026 | 09:15 | Mi modelo gana en test y no lo reclamo | `video/v4-collision-tradeoff.mp4` |
+| 5 | Jue 3 dic 2026 | 09:15 | El modelo gana en test y no lo reclamo | `video/v4-collision-tradeoff.mp4` |
 | 6 | Mié 9 dic 2026 | 08:45 | El sesgo del dataset, medido | `images/06-dataset-bias.png` |
-| 7 | Jue 10 dic 2026 | 09:15 | Un bug que cazó mi propio test | `images/07-bug-caught-by-test.png` |
+| 7 | Jue 10 dic 2026 | 09:15 | Un bug que cazó un test | `images/07-bug-caught-by-test.png` |
 | 8 | Mar 15 dic 2026 | 08:45 | Resultados negativos | `images/08-negative-results.png` |
-| 9 | Jue 17 dic 2026 | 09:15 | Mi primer detector de maniobras falló | `video/v3-manoeuvre-timeline.mp4` |
+| 9 | Jue 17 dic 2026 | 09:15 | El primer detector de maniobras falló | `video/v3-manoeuvre-timeline.mp4` |
 | 10 | Mar 22 dic 2026 | 08:45 | ML contra física: la ablación | `images/10-ml-vs-physics.png` |
 | 11 | Mié 23 dic 2026 | 09:15 | Lo que los datos públicos no ven | `images/11-what-data-cannot-see.png` |
-| 12 | Mar 29 dic 2026 | 08:45 | Agentes que no pueden inventar números | `images/12-number-guard.png` |
+| 12 | Mar 29 dic 2026 | 08:45 | Un informe que no puede inventar números | `images/12-number-guard.png` |
 
-Excepciones al «martes–jueves»: el martes 8 de diciembre es festivo en España (se pasa al
+Excepciones al «martes a jueves»: el martes 8 de diciembre es festivo en España (se pasa al
 miércoles 9); el jueves 24 y el jueves 31 de diciembre se evitan (se usan el miércoles 23 y el
 martes 29). Si prefieres no publicar en Navidad, mueve las tres últimas a los días 12, 14 y 19 de
 enero de 2027.
@@ -46,24 +54,24 @@ vídeo **o** imagen, no ambos): 0 → `images/00-launch.png`, 3 → `images/03-n
 
 ---
 
-## 0 · Lanzamiento — martes 17 nov 2026, 08:45
+## 0 · Lanzamiento · martes 17 nov 2026, 08:45
 
 **Archivo:** `content/video/v1-catalogue.mp4` (alternativa: `content/images/00-launch.png`)
 
 ```text
-I'm 17, in my last year of school in Madrid, and I've built a small research lab on orbital data. Today I'm opening it.
+I'm 17, in my last year of school in Madrid, and I've put together a small research lab on orbital data. Today I'm opening it.
 
 It's called RAAN. It does three things:
 
-→ A 3D twin of 20,152 catalogued objects, propagated in the browser with SGP4 from public orbital elements.
-→ A collision-risk lab on ESA's real conjunction data, where I reproduce the published baseline before training anything.
-→ A manoeuvre detector tested on 837 manoeuvres that operators actually reported.
+→ A 3D twin of 20,152 catalogued objects (11 November snapshot), propagated in the browser with SGP4 from public orbital elements.
+→ A collision-risk lab on ESA's real conjunction data, where the published baseline is reproduced before any model is trained.
+→ A manoeuvre detector tested on 803 manoeuvre events that satellite operators actually reported.
 
 What it is not: an operational tool. Companies like GMV, Neuraspace or LeoLabs do that with data and teams I don't have. The dots on the globe are predictions from published elements, not live tracking, and the app says so on every object.
 
-What I tried to do instead is boring on purpose: public data only, every number regenerated by one command, and negative results published with the reason they are negative. One of my models beats the baseline on the test set and I explain why I don't claim it.
+What I tried to do instead is boring on purpose: public data only, every number regenerated by one command, and negative results published with the reason they are negative. One of the models beats the baseline on the test set and I explain why I don't claim it.
 
-I built it with a lot of help from an AI coding assistant (Claude Code). Deciding what to test, what to trust and what not to claim is the part I had to learn, and it's what I'll write about here over the next six weeks, including the parts that failed.
+I built it with a lot of help from an AI coding assistant (Claude Code): it wrote most of the code. What I had to learn is what to test, what to trust and what not to claim, and that is what I'll write about here over the next six weeks, including the parts that failed.
 
 Link in the first comment. Criticism from people who do this for a living is very welcome.
 
@@ -81,20 +89,22 @@ Orbital data: CelesTrak / 18 SDS. Conjunction data: ESA (CC BY 4.0).
 
 ---
 
-## 1 · El formato TLE se quedó sin dígitos — jueves 19 nov 2026, 09:15
+## 1 · El formato TLE se quedó sin dígitos · jueves 19 nov 2026, 09:15
 
 **Archivo:** `content/images/01-tle-format.png`
 
 ```text
 The first thing I learned building an orbit viewer in 2026: the format every tutorial uses is no longer enough.
 
-The two-line element set (TLE) stores the catalogue number in 5 characters. On 11 July 2026 the 5-digit numbers ran out. New objects get 6-digit numbers and cannot be written as a TLE at all.
+The two-line element set (TLE) stores the catalogue number in 5 characters. According to CelesTrak, the 5-digit numbers ran out on 11 July 2026. New objects get 6-digit numbers and cannot be written as a TLE at all.
 
-In my catalogue snapshot, 1,373 of 20,152 objects exist only in the newer OMM formats. A TLE-only viewer would silently miss them, with no error.
+In my 11 November snapshot, 1,373 of 20,152 objects exist only in the newer OMM formats. A TLE-only viewer would miss them without any error.
 
-So the pipeline reads OMM CSV from CelesTrak and never parses a TLE for live data. I also had to respect CelesTrak's usage policy: the big files can be downloaded once per 2-hour update. I got an HTTP 403 for asking twice, and the fetcher now treats that as "keep yesterday's data", never as "retry".
+So the pipeline reads OMM CSV from CelesTrak and never parses a TLE for live data. It also has to respect CelesTrak's usage policy: the big files can be downloaded once per 2-hour update. During development the fetcher got an HTTP 403 for asking twice. Now it treats that answer as "keep the previous data" and stops, instead of retrying.
 
 Small lesson, but a real one: read the data provider's documentation before the tutorials.
+
+Built with substantial help from an AI coding assistant (Claude Code).
 
 #Astrodynamics #SpaceData #SoftwareEngineering #SpaceSituationalAwareness
 ```
@@ -108,22 +118,26 @@ The project: https://didimacveg.github.io/kessler/
 
 ---
 
-## 2 · Verificación de SGP4 — martes 24 nov 2026, 08:45
+## 2 · Verificación de SGP4 · martes 24 nov 2026, 08:45
 
 **Archivo:** `content/images/02-sgp4-verification.png`
 
 ```text
-Before showing a single satellite on screen, I wanted to know one thing: is my propagator right?
+Before showing a single satellite on screen, one question had to be answered: is the propagator right?
 
-SGP4 is the standard model for turning published orbital elements into positions. I use an existing JavaScript port in the browser, and "it looks fine" is not a test.
+SGP4 is the standard model for turning published orbital elements into positions. The site uses an existing JavaScript implementation (satellite.js), and "it looks fine" is not a test.
 
-Vallado and co-authors published reference results for 33 element sets, from low orbits to deep space. I compare against all of them on every commit:
+Vallado and co-authors published reference results for 33 element sets, from low orbits to deep space. The repository compares against all of them on every commit:
 
 → 666 state vectors
-→ largest position difference: 0.12 mm (1.2e-7 km)
-→ one element set in the file is deliberately invalid. A correct implementation has to refuse it. Mine does, and the test checks that too.
+→ largest position difference: 0.12 mm
+→ one element set in the file is deliberately invalid. A correct implementation has to refuse it, and the test checks that too.
 
-Verification is not the exciting part of a project. It is the part that lets you trust the exciting part.
+One caveat I only understood later. That test reads the old TLE format, but the app reads OMM fields. Through that route the largest difference is 3.5 cm, on one extreme 14-day orbit, because the library reads the epoch to the millisecond. Still far below anything you can see on a globe, but it is not 0.12 mm, so both numbers are on the site.
+
+And none of this says where a satellite really is. It says the code computes SGP4 correctly. SGP4 itself is off by about a kilometre at the epoch and more every day after.
+
+Built with substantial help from an AI coding assistant (Claude Code).
 
 #Astrodynamics #SGP4 #Testing #SoftwareEngineering #Space
 ```
@@ -131,20 +145,20 @@ Verification is not the exciting part of a project. It is the part that lets you
 **Primer comentario:**
 
 ```text
-Reference: Vallado, Crawford, Hujsak, Kelso — "Revisiting Spacetrack Report #3" (AIAA 2006-6753).
+Reference: Vallado, Crawford, Hujsak, Kelso, "Revisiting Spacetrack Report #3" (AIAA 2006-6753).
 Test file in the repo: web/src/twin/sgp4.test.ts → https://github.com/didimacveg/kessler
 ```
 
 ---
 
-## 3 · Los puntos no son «en directo» — jueves 26 nov 2026, 09:15
+## 3 · Los puntos no son «en directo» · jueves 26 nov 2026, 09:15
 
 **Archivo:** `content/video/v2-starlink.mp4` (alternativa: `content/images/03-not-live.png`)
 
 ```text
 This video is not live. Nothing in my project is, and I think that matters.
 
-Every dot is a prediction: SGP4 applied to orbital elements that were published a median of 16 hours earlier. For 312 of the 20,152 objects the elements are more than 5 days old, and the prediction error grows by kilometres per day.
+Every dot is a prediction: SGP4 applied to orbital elements that were published a median of 16 hours earlier (11 November snapshot). For 312 of the 20,152 objects the elements were more than 5 days old, and the prediction error grows by kilometres per day.
 
 So every object in the app shows the date of its data, its age, and a label: "SGP4 propagation, not an observation". When you move the time bar more than 5 days away from the data, the card turns orange and tells you the position is only indicative.
 
@@ -155,6 +169,8 @@ Two more things the app admits:
 
 I would rather show less and be exact about what it is.
 
+Built with substantial help from an AI coding assistant (Claude Code).
+
 #SpaceSituationalAwareness #Starlink #DataVisualization #Astrodynamics
 ```
 
@@ -162,30 +178,32 @@ I would rather show less and be exact about what it is.
 
 ```text
 Try it (click any dot for its elements, epoch and source): https://didimacveg.github.io/kessler/
-Data: CelesTrak GP, derived from 18 SDS / Space-Track.
+Data: CelesTrak GP, derived from 18 SDS / Space-Track. The site refreshes daily, so today's counts differ slightly from the 11 November ones in the post.
 ```
 
 ---
 
-## 4 · Reproducir la referencia antes de entrenar — martes 1 dic 2026, 08:45
+## 4 · Reproducir la referencia antes de entrenar · martes 1 dic 2026, 08:45
 
 **Archivo:** `content/images/04-baseline-reproduced.png`
 
 ```text
 In 2019 ESA ran a machine-learning competition: predict the final collision risk between a satellite and another object, using only what is known two days before the close approach.
 
-97 teams entered. Only 12 beat the simplest idea possible: "the risk will stay where it is now".
+According to the organisers' paper, 97 teams took part and only 12 beat the simplest idea possible: "the risk will stay where it is now".
 
-Before training anything, I tried to reproduce that naive forecast from the released data.
+Before training anything, the first job was to reproduce that naive forecast from the released data.
 
 Published: L = 0.694 (MSE 0.513, F2 0.739)
 Mine:      L = 0.694 (MSE 0.513, F2 0.739)
 
 Same for the second published baseline (always predict 10⁻⁵): 2.50.
 
-It is the most useful thing I did in this part of the project. If my number had been 0.71, every model I trained afterwards would have been compared against the wrong thing, and I would not have known.
+It is the most useful step in this part of the project. If the number had come out as 0.71, every model trained afterwards would have been compared against the wrong thing, and I would not have known.
 
-It is now a test in the repository: if the baseline stops matching the paper, the build fails.
+It is now a test in the repository: with the dataset downloaded, the test fails if the baseline stops matching the paper.
+
+Built with substantial help from an AI coding assistant (Claude Code).
 
 #MachineLearning #Reproducibility #SpaceSafety #DataScience
 ```
@@ -200,28 +218,30 @@ Interactive results: https://didimacveg.github.io/kessler/#/collision
 
 ---
 
-## 5 · Mi modelo gana en test y no lo reclamo — jueves 3 dic 2026, 09:15
+## 5 · El modelo gana en test y no lo reclamo · jueves 3 dic 2026, 09:15
 
 **Archivo:** `content/video/v4-collision-tradeoff.mp4` (alternativa: `content/images/05-not-claiming-it.png`)
 
 ```text
-My model beat the baseline on ESA's test set. I am not claiming it as a result. Here is why.
+One of the models beat the baseline on ESA's test set. I am not claiming it as a result. Here is why.
 
 Test set, official metric (lower is better):
 → naive forecast: 0.694
-→ my LightGBM model: 0.627
+→ LightGBM model: 0.627
 
-That would have been around 6th place out of 97 in the 2019 competition. Tempting.
+On the 2019 leaderboard that score would sit around 6th place. Tempting.
 
-But I had fixed a rule before looking at the test set: I keep a model only if it also wins in cross-validation on the training data. There:
+But the rule in this project is that a model counts only if it also wins in cross-validation on the training data. There:
 → naive forecast: 0.80
-→ my model: 0.98 (worse)
+→ the model: 0.98 (worse), and 1.23 with a stricter, nested cross-validation
 
-And with only 150 high-risk events in the test set, the uncertainty is large: my model wins in 86% of bootstrap resamples. The interval of the difference includes zero.
+And with only 150 high-risk events in the test set, the uncertainty is large: the model wins in 86% of bootstrap resamples, and the 95% interval of the difference includes zero.
 
-So the honest summary is: no validated improvement. The video shows the trade-off behind the number. My model misses 13 high-risk events instead of 35, and raises 185 false alarms instead of 63. Whether that is "better" depends on what an unnecessary manoeuvre costs, which a single metric hides.
+So the honest summary is: no validated improvement. The video shows the trade-off behind the number. The model misses 13 high-risk events instead of 35, and raises 185 false alarms instead of 63. Whether that is "better" depends on what an unnecessary manoeuvre costs, which a single metric hides.
 
-If I had only reported the test score, nobody would have noticed. That is exactly the problem.
+If only the test score had been reported, nobody would have noticed. That is exactly the problem.
+
+Built with substantial help from an AI coding assistant (Claude Code).
 
 #MachineLearning #SpaceSafety #Statistics #DataScience #OpenScience
 ```
@@ -235,12 +255,12 @@ You can move the threshold yourself: https://didimacveg.github.io/kessler/#/coll
 
 ---
 
-## 6 · El sesgo del dataset, medido — miércoles 9 dic 2026, 08:45
+## 6 · El sesgo del dataset, medido · miércoles 9 dic 2026, 08:45
 
 **Archivo:** `content/images/06-dataset-bias.png`
 
 ```text
-Why did my model look good on the test set and bad in cross-validation? The answer was in the data, not in the model.
+Why did the model look good on the test set and bad in cross-validation? The answer was in the data, not in the model.
 
 ESA says it openly: the training and test sets of the Collision Avoidance Challenge were hand-picked to over-represent high-risk events. I wanted to see how much.
 
@@ -252,9 +272,11 @@ And it is not only the base rate. Take events whose latest known risk is between
 → in training, 13% end up high-risk
 → in test, 61% do
 
-Same input, a very different outcome. A classifier trained on one cannot be calibrated on the other, and a decision threshold tuned for 0.8% happens to work nicely at 6.9%. That explains most of my "improvement".
+Same input, a very different outcome. A classifier trained on one cannot be calibrated on the other, and a decision threshold tuned for 0.8% happens to work nicely at 6.9%. I think that explains most of the "improvement", although I have not proven it.
 
 I don't think this makes the dataset bad. It makes it a dataset where you have to check what your test score is actually measuring.
+
+Built with substantial help from an AI coding assistant (Claude Code).
 
 #DataScience #MachineLearning #SpaceSafety #Statistics
 ```
@@ -268,24 +290,26 @@ ESA's own description of the split: https://kelvins.esa.int/collision-avoidance-
 
 ---
 
-## 7 · Un bug que cazó mi propio test — jueves 10 dic 2026, 09:15
+## 7 · Un bug que cazó un test · jueves 10 dic 2026, 09:15
 
 **Archivo:** `content/images/07-bug-caught-by-test.png`
 
 ```text
 A bug story, because projects that only show results are hiding something.
 
-One of my model's inputs was "the previous risk value" of each event. One line of pandas computed it. It ran without errors, the model trained, the score looked great: 0.607.
+One of the model's inputs was "the previous risk value" of each event. One line of pandas computed it. That line was written by the AI assistant I worked with. It ran without errors, the model trained, and the test score looked great: 0.607.
 
-Then I wrote a unit test for the feature table, using a tiny hand-made dataset where I knew every answer. It crashed.
+Then came a unit test for the feature table, using a tiny hand-made dataset where every answer is known. It failed.
 
-The line was matching values by row label instead of by event. On the real data the labels happened to be unique, so nothing crashed. It just quietly put the wrong number in that column for almost every event.
+The line was matching values by row label instead of by event. On the real data nothing crashed. It just quietly put the wrong number in that column for about half of the events (52% in the test set).
 
-After the fix I retrained everything. The score moved from 0.607 to 0.627. Worse. That is the number on the site.
+After the fix everything was retrained. The score moved from 0.607 to 0.627. Worse. That is the number on the site, and the repository has a script that puts the bug back so anyone can check the 0.607.
 
 Two things I took from it:
-1. A model can train happily on a broken feature. Nothing warns you.
-2. The honest number is sometimes the less impressive one, and you only find out which is which if you test the boring parts.
+1. A model can train happily on a broken feature. Nothing warns you, whoever or whatever wrote the code.
+2. The honest number is sometimes the less impressive one, and you only find out which is which if the boring parts are tested.
+
+Built with substantial help from an AI coding assistant (Claude Code).
 
 #SoftwareEngineering #MachineLearning #Testing #Python #LearningInPublic
 ```
@@ -293,17 +317,18 @@ Two things I took from it:
 **Primer comentario:**
 
 ```text
-The test that caught it: tests/test_collision.py → https://github.com/didimacveg/kessler
+The test that caught it: tests/test_collision.py. The replay of the bug: python -m raan.collision.replay_bug
+https://github.com/didimacveg/kessler
 ```
 
 ---
 
-## 8 · Resultados negativos — martes 15 dic 2026, 08:45
+## 8 · Resultados negativos · martes 15 dic 2026, 08:45
 
 **Archivo:** `content/images/08-negative-results.png`
 
 ```text
-Two of the three models I trained for collision risk are worse than not using a model at all. I'm publishing them anyway.
+Two of the three collision-risk models in this project are worse than not using a model at all. I'm publishing them anyway.
 
 Official metric on ESA's test set (lower is better):
 → naive forecast, no model: 0.694
@@ -312,13 +337,15 @@ Official metric on ESA's test set (lower is better):
 
 Why they fail, as far as I can tell:
 
-The regression model sees 99% low-risk events. It learns to predict "low" for everyone and pays for it on exactly the events the metric cares about.
+The regression model sees 99% low-risk events. It learns to predict "low" for almost everyone and pays for it on exactly the events the metric cares about.
 
-The GRU has a few thousand parameters and 66 positive examples to learn from. It misses the same number of high-risk events as the naive forecast (35) and more than doubles the false alarms (143 vs 63).
+The GRU has 4,578 parameters and 66 positive examples to learn from. It misses the same number of high-risk events as the naive forecast (35) and more than doubles the false alarms (143 vs 63).
 
-And some events cannot be predicted by anything: 11 of the 35 misses had a risk below 10⁻¹⁰ two days before the close approach. The risk appeared in the last two days, when new tracking data arrived. That information is simply not in the inputs.
+And some events may not be predictable from these inputs at all: 11 of the 35 misses had a risk below 10⁻¹⁰ two days before the close approach. The risk showed up in the last two days, which the inputs do not cover.
 
-I was told once that a negative result explained properly is worth more than an inflated metric. I believe it more now than before I had three of them.
+A negative result explained properly is worth more than an inflated metric. I believe that more now than before I had three of them.
+
+Built with substantial help from an AI coding assistant (Claude Code).
 
 #MachineLearning #OpenScience #SpaceSafety #DeepLearning
 ```
@@ -331,24 +358,28 @@ Model cards for every model, including the ones that failed: https://didimacveg.
 
 ---
 
-## 9 · Mi primer detector de maniobras falló — jueves 17 dic 2026, 09:15
+## 9 · El primer detector de maniobras falló · jueves 17 dic 2026, 09:15
 
 **Archivo:** `content/video/v3-manoeuvre-timeline.mp4` (alternativa: `content/images/09-spike-vs-step.png`)
 
 ```text
-Satellites manoeuvre without announcing it. But a burn leaves a mark in the public orbital data, and I wanted to detect it.
+Satellites rarely announce their manoeuvres. But a burn leaves a mark in the public orbital data, and I wanted to detect it.
 
-My first detector was the obvious one: flag any sudden jump in the semi-major axis, or any day when yesterday's elements fail to predict today's position.
+The first detector was the obvious one: flag any sudden jump in the semi-major axis, or any day when yesterday's elements fail to predict today's position.
 
-Tested on 837 manoeuvres that operators actually reported (15 satellites): F1 = 0.35. One alarm in four was real.
+Tested on 803 manoeuvre events that operators actually reported (15 satellites): F1 = 0.35. One alarm in four was real.
 
-The reason: public element sets are sometimes simply bad for one day. A bad data point is a spike: the orbit seems to jump and come back. A manoeuvre is a step: it jumps and stays. My detector fired twice on every spike.
+The reason: public element sets are sometimes simply bad for one day. A bad data point is a spike: the orbit seems to jump and come back. A manoeuvre is a step: it jumps and stays. The detector fired twice on every spike.
 
-The fix is three lines of statistics: compare the median of the three element sets after with the median of the three before, minus the normal drag decay. A single bad point cannot move a median of three.
+The fix is a few lines of statistics: compare the median of the three element sets after with the median of the three before, minus the normal drag decay. A single bad point cannot move a median of three.
 
-Same data, same test: F1 = 0.78.
+Same data, same test: F1 = 0.79. For scale, the same number of alarms placed at random times scores about 0.1.
 
-The video is Sentinel-3A. Top lane: what the operator reported. Second lane: what the detector found, never having seen this satellite's labels.
+The price: it needs three later element sets, so it sees a manoeuvre about three days after it happened. It is a look back, not an alert.
+
+The video is Sentinel-3A. Top lane: what the operator reported. Second lane: what the classifier found, never having seen this satellite's labels.
+
+Built with substantial help from an AI coding assistant (Claude Code).
 
 #Astrodynamics #SignalProcessing #SpaceSituationalAwareness #DataScience
 ```
@@ -362,26 +393,30 @@ Labels: International DORIS Service, via the benchmark of Shorten et al. (arXiv:
 
 ---
 
-## 10 · ML contra física: la ablación — martes 22 dic 2026, 08:45
+## 10 · ML contra física: la ablación · martes 22 dic 2026, 08:45
 
 **Archivo:** `content/images/10-ml-vs-physics.png`
 
 ```text
-"Machine learning beat the physics baseline by 6 points." True, and misleading. I almost wrote it that way.
+"Machine learning beat the physics baseline by 7 points." True, and misleading. It was almost written that way.
 
-Manoeuvre detection, 837 reported events, every satellite held out in turn:
-→ CUSUM change detector: F1 0.51
-→ my physics baseline (step in semi-major axis or inclination): 0.73
-→ gradient-boosted classifier: 0.79
+Manoeuvre detection, 803 reported events, every satellite held out in turn:
+→ CUSUM change detector: F1 0.52
+→ the physics baseline (step in semi-major axis or inclination): 0.74
+→ gradient-boosted classifier: 0.81
 
-Then I ran the ablation, testing each piece of the physics baseline on its own:
-→ semi-major axis only: 0.78
+Then the ablation, testing each piece of the physics baseline on its own:
+→ semi-major axis only: 0.79
 
-My own baseline was worse than half of itself. Adding inclination brought more false alarms than detections. Requiring a second confirmation signal made it worse again (0.64).
+The baseline was worse than half of itself. Adding inclination brought more false alarms than detections. Requiring a second confirmation signal made it worse again (0.66).
 
 So the fair statement is: the classifier adds about 2 points over the best simple rule. And it does so mostly by re-weighting that same rule: the step in semi-major axis is 36% of what the model uses.
 
-What I learned: compare your model with the best simple method you can find, not with the first one you wrote. The ablation costs ten minutes and changes the headline.
+Two limits I should state. These are 15 well-tracked satellites doing classic burns, nothing like a low-thrust Starlink. And the design choices were tuned on these same satellites, so the numbers are optimistic for anything else.
+
+What I learned: compare your model with the best simple method you can find, not with the first one you wrote.
+
+Built with substantial help from an AI coding assistant (Claude Code).
 
 #MachineLearning #Astrodynamics #DataScience #OpenScience
 ```
@@ -394,26 +429,29 @@ Ablation table and per-satellite results: https://didimacveg.github.io/kessler/#
 
 ---
 
-## 11 · Lo que los datos públicos no ven — miércoles 23 dic 2026, 09:15
+## 11 · Lo que los datos públicos no ven · miércoles 23 dic 2026, 09:15
 
 **Archivo:** `content/images/11-what-data-cannot-see.png`
 
 ```text
-How small a manoeuvre can you see from public orbital data? I measured it instead of guessing.
+How small a manoeuvre can you see from public orbital data? It can be measured instead of guessed.
 
-For each of the manoeuvres reported by the operators of 10 low-orbit satellites, I estimated how much the burn changed the orbit's semi-major axis, and checked whether my best detector found it:
+For each manoeuvre reported by the operators of 10 low-orbit satellites, the pipeline estimates how much the burn changed the orbit's semi-major axis and checks whether the best detector found it:
 
-→ less than 1 m: 5 of 45 found
-→ 1 to 3 m: 29 of 66
+→ 1 to 3 m: 29 of 66 found
 → 3 to 10 m: 110 of 144
 → 10 to 30 m: 199 of 231
 → 30 to 100 m: 71 of 83
 
-Below about a metre, the manoeuvre is inside the noise of the published elements. No algorithm on this data will recover it.
+The reason for the drop at the small end: on quiet days, with no manoeuvre at all, the same statistic already wobbles by 0.4 m (median) and up to 4 m (95th percentile). A burn of a metre or two looks like the noise.
 
-The surprise was at the other end: only 46 of 75 burns above 100 m. I assumed a bug. It wasn't. 25 of the 29 that were missed have another reported burn within four days. They are orbit-change campaigns, and with one data point per day the detector sees one long event where the operator reports several.
+A correction I owe. An earlier version of this chart said "5 of 45 burns under 1 m found". A second review of the code showed that 34 of those were burns reported outside the period covered by the satellite's orbital data (mostly before its first data point): impossible to detect, and not small at all. With them removed there are only 11 burns under 1 m (4 found), too few to say anything. All the manoeuvre scores were recomputed without those events.
+
+The other surprise was at the top: only 47 of 75 burns above 100 m. 24 of the 28 that were missed have another reported burn within four days. They are orbit-change campaigns, and with one data point per day the detector sees one long event where the operator reports several.
 
 Knowing where a method stops working is a result too.
+
+Built with substantial help from an AI coding assistant (Claude Code).
 
 #Astrodynamics #SpaceSituationalAwareness #DataScience #Space
 ```
@@ -422,34 +460,36 @@ Knowing where a method stops working is a result too.
 
 ```text
 Method and limits: https://didimacveg.github.io/kessler/#/maneuvers
-All of this covers impulsive burns on 15 well-tracked satellites. Low-thrust electric propulsion is not covered, and I say so on the page.
+All of this covers impulsive burns on 15 well-tracked satellites. Low-thrust electric propulsion is not covered, and the page says so.
 ```
 
 ---
 
-## 12 · Agentes que no pueden inventar números — martes 29 dic 2026, 08:45
+## 12 · Un informe que no puede inventar números · martes 29 dic 2026, 08:45
 
 **Archivo:** `content/images/12-number-guard.png`
 
 ```text
-Last part of the project: a periodic report written by AI agents. The interesting bit is what they are not allowed to do.
+Last part of the project: a daily report on the data. The interesting bit is what it is not allowed to do.
 
-The risk with a language model summarising data is simple: it writes a number that sounds right and isn't. So in RAAN the agents never calculate.
+The risk with a language model summarising data is simple: it writes a number that sounds right and isn't. So in RAAN the report never calculates.
 
 How it works:
-→ Three analyst agents read the files produced by the pipeline and register facts. Each fact has a value and the file it came from.
+→ Three small analyst programs (I call them agents, but they are plain code, not AI) read the files produced by the pipeline and register facts. Each fact has a value and the file it came from.
 → A reviewer rejects any statement that cites a fact that doesn't exist.
-→ An editor writes the text. If it uses Claude, the paragraph is checked: every number in it must equal a fact that paragraph cites. One number that isn't there, and the paragraph is thrown away and replaced by a fixed template.
+→ An editor writes the text from fixed templates. Optionally a language model (Claude) can rephrase a paragraph, and then it is checked: every number in it must equal a fact that paragraph cites. One number that isn't there, and the paragraph is thrown away and the template is used.
 
-I test this with a fake model that adds "a 12.5% increase" to a sentence. The check catches it every time.
+A unit test does this with a fake model that adds "a 12.5% increase" to a sentence, and checks that it is rejected.
 
-It also runs with no API key at all, using templates. Less elegant prose, same numbers.
+What the check does not do: it compares numbers, not meaning. A model could still attach a correct number to the wrong claim, so the caveats are never left to the model either. And I have not run the Claude path with a real API key yet: the report on the site is the template version.
 
-The current report has 7 findings and 36 cited facts, and each one links to where you can verify it. That was the only kind of AI report I felt comfortable putting my name on.
+The current report has 7 findings and 36 cited facts, each with the file or page where you can check it.
 
 That's the last post of this series. Thank you to everyone who read, corrected and questioned. I start applying to aerospace engineering this year, and I learned more from the parts that failed than from the parts that worked.
 
-#AIagents #LLM #DataEngineering #OpenScience #LearningInPublic
+Built with substantial help from an AI coding assistant (Claude Code).
+
+#LLM #DataEngineering #OpenScience #LearningInPublic
 ```
 
 **Primer comentario:**

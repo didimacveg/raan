@@ -141,7 +141,7 @@ function render(id: string, d: Data): ReactNode {
             items={[
               [String(d.ver.vectors), 'reference state vectors compared'],
               ['33', 'element sets, from LEO to deep space'],
-              ['1', 'deliberately invalid set that must be rejected — and is'],
+              ['1', 'deliberately invalid set that must be rejected, and is'],
             ]}
           />
         </Shell>
@@ -153,9 +153,9 @@ function render(id: string, d: Data): ReactNode {
             max={2.6}
             bars={[
               { label: 'Challenge winner (published)', value: col.published[0].L, text: fmt(col.published[0].L, 3), tone: 'mute' },
-              { label: '“Risk stays the same” — published', value: 0.694, text: '0.694', tone: 'mute' },
-              { label: '“Risk stays the same” — my reproduction', value: by.lrp.L, text: fmt(by.lrp.L, 3), tone: 'blue' },
-              { label: 'Always predict 10⁻⁵ — my reproduction', value: by.crp.L, text: fmt(by.crp.L, 2), tone: 'ink' },
+              { label: '“Risk stays the same”, published', value: 0.694, text: '0.694', tone: 'mute' },
+              { label: '“Risk stays the same”, my reproduction', value: by.lrp.L, text: fmt(by.lrp.L, 3), tone: 'blue' },
+              { label: 'Always predict 10⁻⁵, my reproduction', value: by.crp.L, text: fmt(by.crp.L, 2), tone: 'ink' },
             ]}
           />
           <p className="clede">Loss L, lower is better. Only 12 of 97 teams beat the naive forecast in 2019.</p>
@@ -194,14 +194,14 @@ function render(id: string, d: Data): ReactNode {
       )
     case 'bug':
       return (
-        <Shell n="07" eyebrow="Engineering · a bug my own test caught" title={<>One line was silently feeding my model the wrong number.</>} source="Replay: python -m raan.collision.replay_bug. The model was retrained after the fix; all published numbers are post-fix.">
+        <Shell n="07" eyebrow="Engineering · a bug a unit test caught" title={<>One line was silently feeding my model the wrong number.</>} source="Replay: python -m raan.collision.replay_bug. The model was retrained after the fix; all published numbers are post-fix.">
           <pre className="ccode mono">
             <span className="del">- risk.nth(-2).reindex(table.index)</span>
             {'\n'}
             <span className="add">+ risk.apply(lambda s: s.iloc[-2] if len(s) &gt; 1 else s.iloc[-1])</span>
           </pre>
           <p className="clede">
-            “Previous risk” was being matched by row label instead of by event. No error, no warning — just a wrong feature. A unit test with duplicated row labels failed and exposed it.
+            “Previous risk” was being matched by row label instead of by event. No error, no warning, just a wrong feature. A unit test with duplicated row labels failed and exposed it.
           </p>
           <Stats items={[['0.607 → 0.627', 'test loss of the model, before → after the fix'], ['52%', 'of events had the wrong value in that column']]} />
         </Shell>
@@ -249,7 +249,7 @@ function render(id: string, d: Data): ReactNode {
         <Shell n="11" eyebrow="Manoeuvre detection · limits" title={<>What public orbital data cannot see.</>} source="Recall of the best detector by size of the step in mean semi-major axis. 10 LEO satellites.">
           <Bars
             max={1}
-            bars={man.recall_by_size_leo.map((r) => ({
+            bars={man.recall_by_size_leo.filter((r) => r.lo_m > 0).map((r) => ({
               label: r.hi_m === null ? `more than ${r.lo_m} m` : `${r.lo_m} – ${r.hi_m} m`,
               value: r.n ? r.ml / r.n : 0,
               text: `${r.ml}/${r.n}`,
@@ -257,7 +257,7 @@ function render(id: string, d: Data): ReactNode {
             }))}
           />
           <p className="clede">
-            Half of the burns between 1 and 3 m are missed ({man.recall_by_size_leo[1].ml} of {man.recall_by_size_leo[1].n} found): the detector's own noise is {man.noise_floor_leo_m ? man.noise_floor_leo_m.median.toFixed(1) : '—'} m (median) to {man.noise_floor_leo_m ? man.noise_floor_leo_m.p95.toFixed(1) : '—'} m (95th percentile). Of the {man.large_burn_misses.missed} big ones missed, {man.large_burn_misses.with_another_reported_burn_within_4_days} sit inside multi-burn campaigns.
+            Under 3 m most burns are missed: with no burn at all, the same statistic already moves by {man.noise_floor_leo_m ? man.noise_floor_leo_m.median.toFixed(1) : '—'} to {man.noise_floor_leo_m ? man.noise_floor_leo_m.p95.toFixed(1) : '—'} m. Of the {man.large_burn_misses.missed} big ones missed, {man.large_burn_misses.with_another_reported_burn_within_4_days} sit inside multi-burn campaigns.
           </p>
         </Shell>
       )
