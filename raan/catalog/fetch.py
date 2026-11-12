@@ -111,7 +111,7 @@ def fetch_all(raw_dir: Path, groups: tuple[str, ...] = GP_GROUPS) -> list[FetchR
             # Usage policy: "immediately stop querying when it receives any non-HTTP 200".
             previous = _iso(dest.stat().st_mtime) if dest.exists() else None
             results.append(
-                FetchResult(name, url, dest.name, "skipped", None, previous, "earlier HTTP error")
+                FetchResult(name, url, dest.name, "skipped", None, previous, "earlier failure")
             )
             continue
         result = fetch_one(name, url, dest, max_age, session)
