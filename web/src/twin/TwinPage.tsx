@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { fmtAge, fmtInt, fmtUtc } from '../lib/format'
 import type { Route } from '../lib/router'
 import { applyFilters, defaultFilters, loadCatalog, type Catalog, type Filters } from './catalog'
-import { GlobeEngine, type LiveState, type TickInfo } from './engine'
+import { GlobeEngine, type LiteMode, type LiveState, type Quality, type TickInfo } from './engine'
 import FiltersPanel from './Filters'
 import ObjectCard from './ObjectCard'
 import TimeBar from './TimeBar'
@@ -30,12 +30,16 @@ export default function TwinPage({ route }: { route: Route }) {
   const [live, setLive] = useState<LiveState | null>(null)
   const [hover, setHover] = useState<{ index: number; x: number; y: number } | null>(null)
   const [sheet, setSheet] = useState(false)
+  const [quality, setQuality] = useState<Quality | null>(null)
   const anchor = useMemo(() => Date.now() / 1000, [])
 
   const stress = Number(route.query.get('stress') ?? 0)
   const showFps = route.query.has('fps') || stress > 0
   const bare = route.query.get('ui') === '0'
   const poster = route.query.get('title')
+  // ?lite=1 forces the light mode, ?lite=0 disables it; default: automatic
+  const liteParam = route.query.get('lite')
+  const lite: LiteMode = liteParam === '1' ? 'on' : liteParam === '0' ? 'off' : 'auto'
 
   useEffect(() => {
     loadCatalog(stress)
@@ -50,9 +54,10 @@ export default function TwinPage({ route }: { route: Route }) {
   useEffect(() => {
     if (!catalog || !canvasRef.current) return
     const startAt = Number(route.query.get('t')) || anchor
-    const engine = new GlobeEngine(canvasRef.current, catalog, startAt)
+    const engine = new GlobeEngine(canvasRef.current, catalog, startAt, { lite, capture: bare })
     engineRef.current = engine
     engine.onReady = setReady
+    engine.onQuality = setQuality
     engine.onTick = (info) => {
       setTick(info)
       setLive(engine.selected !== null ? engine.liveState(engine.selected) : null)
@@ -213,6 +218,15 @@ export default function TwinPage({ route }: { route: Route }) {
                       {fmtInt(meta.stress.real)} real objects to measure rendering performance.
                     </p>
                   )}
+                  {quality && quality.tier > 0 && (
+                    <p className="muted" data-testid="lite-note">
+                      Light mode ({quality.reason}): rendering at reduced resolution
+                      {quality.stride > 1 &&
+                        `, drawing 1 object in ${quality.stride}. All ${fmtInt(shown)} remain in the search and filters`}
+                      .{' '}
+                      <a href={`?lite=0${window.location.hash}`}>Full quality</a>
+                    </p>
+                  )}
                   <p className="muted">Click any dot for its elements, epoch and source.</p>
                 </div>
               )
@@ -263,6 +277,7 @@ export default function TwinPage({ route }: { route: Route }) {
         <div className="twin__fps mono glass">
           {tick.fps.toFixed(0)} fps · SGP4 pass {tick.workerMs.toFixed(0)} ms ·{' '}
           {fmtInt(catalog?.count ?? 0)} objects
+          {quality && ` · tier ${quality.tier} · ${quality.scale.toFixed(2)}x${quality.stride > 1 ? ` · 1/${quality.stride}` : ''}`}
         </div>
       )}
     </main>

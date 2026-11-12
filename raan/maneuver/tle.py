@@ -141,3 +141,39 @@ def intervals(h: History) -> Intervals:
         res_t_km=res[:, 1],
         res_n_km=res[:, 2],
     )
+
+
+def vallado_check() -> dict:
+    """Compare the ``sgp4`` package with Vallado's reference output (shipped with the package).
+
+    Returns the number of state vectors compared and the largest position difference in km.
+    The deliberately invalid element set 33334 must be refused and is not compared.
+    """
+    from importlib.resources import files
+
+    lines = [
+        ln
+        for ln in files("sgp4").joinpath("SGP4-VER.TLE").read_text().splitlines()
+        if ln.startswith(("1 ", "2 "))
+    ]
+    cases = [(lines[k][:69], lines[k + 1][:69]) for k in range(0, len(lines), 2)]
+    blocks: list[tuple[int, list]] = []
+    for line in files("sgp4").joinpath("tcppver.out").read_text().splitlines():
+        parts = line.split()
+        if len(parts) == 2 and parts[1] == "xx":
+            blocks.append((int(parts[0]), []))
+        elif len(parts) >= 7:
+            blocks[-1][1].append([float(x) for x in parts[:7]])
+    compared, worst, errors = 0, 0.0, 0
+    for (l1, l2), (catnr, rows) in zip(cases, blocks, strict=True):
+        sat = Satrec.twoline2rv(l1, l2, WGS72)
+        if sat.satnum != catnr:
+            raise ValueError(f"verification files out of step at {catnr}")
+        for tsince, *state in rows:
+            err, r, _v = sat.sgp4_tsince(tsince)
+            if catnr == 33334:
+                continue
+            errors += err != 0
+            worst = max(worst, max(abs(a - b) for a, b in zip(r, state[:3], strict=True)))
+            compared += 1
+    return {"element_sets": len(cases), "vectors": compared, "max_km": worst, "errors": errors}

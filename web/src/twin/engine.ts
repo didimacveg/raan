@@ -38,6 +38,58 @@ export interface LiveState {
   radius: number
 }
 
+/**
+ * Rendering quality. The engine starts at a tier chosen from the device and steps down (never
+ * up) while the measured frame rate stays low. Cheapest levers first: resolution, then the
+ * number of points drawn. `stride` = draw one object in every `stride`; the UI says so.
+ */
+export interface Quality {
+  tier: number
+  /** device pixels per CSS pixel actually rendered (can be below 1) */
+  scale: number
+  stride: number
+  antialias: boolean
+  /** why this tier: 'full', 'mobile', 'software renderer', 'low frame rate', 'forced' */
+  reason: string
+  auto: boolean
+}
+
+export type LiteMode = 'auto' | 'on' | 'off'
+
+export interface EngineOptions {
+  lite?: LiteMode
+  /** deterministic frame capture (videos, posters): full quality, readable drawing buffer */
+  capture?: boolean
+}
+
+const TIERS: { scale: number; stride: number }[] = [
+  { scale: 2, stride: 1 }, // capped by the device pixel ratio
+  { scale: 1.5, stride: 1 },
+  { scale: 1, stride: 1 },
+  { scale: 0.75, stride: 1 },
+  { scale: 0.75, stride: 2 },
+  { scale: 0.6, stride: 3 },
+]
+const LOW_FPS = 24 // below this for a whole window → one tier down
+const ADAPT_WINDOW_MS = 1500
+
+/** What the browser will render with, read from a throw-away context before the real one. */
+export function probeDevice(): { software: boolean; mobile: boolean; renderer: string } {
+  let renderer = ''
+  try {
+    const gl = document.createElement('canvas').getContext('webgl2')
+    const ext = gl?.getExtension('WEBGL_debug_renderer_info')
+    renderer = String((gl && ext && gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) || '')
+    gl?.getExtension('WEBGL_lose_context')?.loseContext()
+  } catch {
+    /* no WebGL info: treated as an ordinary device */
+  }
+  const software = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(renderer)
+  const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
+  const mobile = coarse && Math.min(window.innerWidth, window.innerHeight) < 820
+  return { software, mobile, renderer }
+}
+
 /** TEME (km) → scene coordinates (Y up, Earth radius = 1). */
 const toScene = (x: number, y: number, z: number, out: THREE.Vector3) =>
   out.set(x * KM, z * KM, -y * KM)
@@ -84,6 +136,15 @@ export class GlobeEngine {
   private readonly manualWaiters = new Map<number, () => void>()
 
   selected: number | null = null
+  private tier = 0
+  private readonly maxScale: number
+  private readonly antialias: boolean
+  private readonly adaptive: boolean
+  private qualityReason = 'full'
+  private adaptFrames = 0
+  private adaptStamp = 0
+  private adaptHold = 0
+  private lowWindows = 0
   private portrait = false
   private hovered: number | null = null
   private readonly mask: Float32Array
@@ -92,21 +153,47 @@ export class GlobeEngine {
   onReady: (info: { count: number; failed: number; ms: number }) => void = () => {}
   onHover: (index: number | null, x: number, y: number) => void = () => {}
   onSelect: (index: number | null) => void = () => {}
+  onQuality: (q: Quality) => void = () => {}
 
-  constructor(canvas: HTMLCanvasElement, catalog: Catalog, startTime: number) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    catalog: Catalog,
+    startTime: number,
+    options: EngineOptions = {},
+  ) {
     this.catalog = catalog
     this.count = catalog.count
     this.simTime = startTime
     this.mask = new Float32Array(this.count).fill(1)
 
+    // --- quality: pick a starting tier from the device, then adapt to the measured frame rate
+    const capture = options.capture === true
+    const lite: LiteMode = capture ? 'off' : (options.lite ?? 'auto')
+    const device = probeDevice()
+    this.maxScale = Math.min(window.devicePixelRatio || 1, 2)
+    this.adaptive = lite !== 'off'
+    if (lite === 'on') {
+      this.tier = 3
+      this.qualityReason = 'forced'
+    } else if (lite === 'auto' && device.software) {
+      this.tier = 3
+      this.qualityReason = 'software renderer'
+    } else if (lite === 'auto' && device.mobile) {
+      this.tier = 1
+      this.qualityReason = 'mobile'
+    }
+    // Multisampling cannot be changed after the context exists; it is the most expensive
+    // setting on integrated and software GPUs, so only desktop-class starts get it.
+    this.antialias = this.tier === 0
+
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: true,
+      antialias: this.antialias,
       alpha: true,
       powerPreference: 'high-performance',
-      preserveDrawingBuffer: true, // needed for deterministic frame capture
+      preserveDrawingBuffer: capture, // only deterministic frame capture needs to read it back
     })
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer.setPixelRatio(Math.min(TIERS[this.tier].scale, this.maxScale))
     this.renderer.setClearColor(0xffffff, 0)
 
     this.camera.position.set(2.9, 1.7, 3.3)
@@ -119,7 +206,8 @@ export class GlobeEngine {
     this.controls.rotateSpeed = 0.5
     this.controls.zoomSpeed = 0.7
 
-    const { earth, halo, material } = makeEarth(makeEarthTexture())
+    // A 4096-px texture is 22 MB of GPU memory with mipmaps: half the size on small devices.
+    const { earth, halo, material } = makeEarth(makeEarthTexture(this.tier === 0 ? 4096 : 2048))
     this.earth = earth
     this.earthMaterial = material
     this.scene.add(earth, halo)
@@ -151,6 +239,7 @@ export class GlobeEngine {
         uSize: { value: 2.6 },
         uPixelRatio: { value: this.renderer.getPixelRatio() },
         uOpacity: { value: 0.9 },
+        uStride: { value: TIERS[this.tier].stride },
       },
       vertexShader: /* glsl */ `
         attribute vec3 posB;
@@ -159,10 +248,12 @@ export class GlobeEngine {
         uniform float uMix;
         uniform float uSize;
         uniform float uPixelRatio;
+        uniform int uStride;
         varying vec3 vColor;
         void main() {
           vColor = aColor;
           bool bad = aVisible < 0.5 || position.x != position.x || posB.x != posB.x;
+          bad = bad || (uStride > 1 && (gl_VertexID % uStride) != 0);
           if (bad) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); gl_PointSize = 0.0; return; }
           vec3 m = mix(position, posB, uMix);
           float r = mix(length(position), length(posB), uMix);
@@ -171,7 +262,7 @@ export class GlobeEngine {
           vec4 mv = modelViewMatrix * vec4(p, 1.0);
           gl_Position = projectionMatrix * mv;
           float dist = -mv.z;
-          gl_PointSize = uSize * uPixelRatio * clamp(3.4 / dist, 0.55, 2.4);
+          gl_PointSize = max(uSize * uPixelRatio * clamp(3.4 / dist, 0.55, 2.4), 1.5);
         }`,
       fragmentShader: /* glsl */ `
         uniform float uOpacity;
@@ -201,6 +292,7 @@ export class GlobeEngine {
           depthTest: false,
           uniforms: {
             uColor: { value: new THREE.Color(color) },
+            uBase: { value: size },
             uSize: { value: size * this.renderer.getPixelRatio() },
           },
           vertexShader: /* glsl */ `
@@ -267,6 +359,7 @@ export class GlobeEngine {
   private onWorker(msg: WorkerResponse) {
     if (msg.kind === 'ready') {
       this.onReady(msg)
+      this.onQuality(this.quality())
       this.resetFrames()
     } else if (msg.kind === 'frame') {
       const waiter = this.manualWaiters.get(msg.seq)
@@ -435,7 +528,8 @@ export class GlobeEngine {
     const dir = new THREE.Vector3()
     let best: number | null = null
     let bestD = radiusPx * radiusPx
-    for (let k = 0; k < this.count; k++) {
+    const stride = TIERS[this.tier].stride
+    for (let k = 0; k < this.count; k += stride) {
       if (this.mask[k] < 0.5 || !this.positionOf(k, p)) continue
       toScene(p.x, p.y, p.z, s)
       dir.copy(s).project(this.camera)
@@ -455,6 +549,61 @@ export class GlobeEngine {
       bestD = d2
     }
     return best
+  }
+
+  quality(): Quality {
+    return {
+      tier: this.tier,
+      scale: this.renderer.getPixelRatio(),
+      stride: TIERS[this.tier].stride,
+      antialias: this.antialias,
+      reason: this.qualityReason,
+      auto: this.adaptive,
+    }
+  }
+
+  private applyTier(tier: number, reason: string) {
+    this.tier = Math.max(0, Math.min(TIERS.length - 1, tier))
+    this.qualityReason = reason
+    const ratio = Math.min(TIERS[this.tier].scale, this.maxScale)
+    this.renderer.setPixelRatio(ratio)
+    this.pointsMaterial.uniforms.uPixelRatio.value = ratio
+    this.pointsMaterial.uniforms.uStride.value = TIERS[this.tier].stride
+    for (const m of [this.marker, this.hoverMarker]) {
+      const u = (m.material as THREE.ShaderMaterial).uniforms
+      u.uSize.value = u.uBase.value * ratio
+    }
+    this.resize()
+    this.onQuality(this.quality())
+  }
+
+  /** One tier down when a whole measurement window stays under LOW_FPS. Never steps up: a
+   *  device that needed the lighter tier would only oscillate. */
+  private adapt(now: number) {
+    if (!this.adaptive || !this.frameA || document.hidden) {
+      this.adaptFrames = 0
+      this.adaptStamp = now
+      return
+    }
+    this.adaptFrames++
+    const elapsed = now - this.adaptStamp
+    if (elapsed < ADAPT_WINDOW_MS) return
+    const fps = (this.adaptFrames * 1000) / elapsed
+    this.adaptFrames = 0
+    this.adaptStamp = now
+    if (this.adaptHold === 0) this.adaptHold = now + 2500 // ignore the start-up hitch
+    if (now < this.adaptHold) return
+    if (fps >= LOW_FPS || this.tier >= TIERS.length - 1) {
+      this.lowWindows = 0
+      return
+    }
+    this.lowWindows++
+    // Lower resolution after one slow window; hide objects only if it stays slow for two.
+    const dropsObjects = TIERS[this.tier + 1].stride > TIERS[this.tier].stride
+    if (dropsObjects && this.lowWindows < 2) return
+    this.lowWindows = 0
+    this.applyTier(this.tier + 1, 'low frame rate')
+    this.adaptHold = now + 1000 // let the new tier settle before judging it
   }
 
   setHover(index: number | null) {
@@ -514,6 +663,7 @@ export class GlobeEngine {
       this.refreshOrbit()
     }
     this.renderOnce()
+    this.adapt(now)
     this.frames++
     if (now - this.fpsStamp >= 500) {
       this.fps = (this.frames * 1000) / (now - this.fpsStamp)
