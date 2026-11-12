@@ -116,7 +116,8 @@ def fetch_all(raw_dir: Path, groups: tuple[str, ...] = GP_GROUPS) -> list[FetchR
             continue
         result = fetch_one(name, url, dest, max_age, session)
         results.append(result)
-        stopped = result.http_status is not None and result.http_status != 200
+        # also after a transport failure: fetch_one has already retried it
+        stopped = result.status in ("error", "not-updated")
         if result.status == "downloaded":
             time.sleep(1.0)
     (raw_dir / "manifest.json").write_text(json.dumps([asdict(r) for r in results], indent=2))
