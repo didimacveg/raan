@@ -1,0 +1,18 @@
+const { chromium } = require('playwright')
+;(async () => {
+  const [out, w, h] = process.argv.slice(2)
+  const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] })
+  const p = await b.newPage({ viewport: { width: +w, height: +h } })
+  p.on('pageerror', (e) => console.log('pageerror', e.message))
+  await p.goto('http://localhost:5173/#/')
+  await p.waitForFunction(() => window.__raan, null, { timeout: 60000 })
+  await p.waitForTimeout(6000)
+  await p.evaluate(() => { const r = window.__raan; r.engine.select(r.catalog.cols.id.indexOf(25544)) })
+  await p.waitForTimeout(2500)
+  await p.screenshot({ path: out })
+  // filter test: Starlink only
+  await p.evaluate(() => { const r = window.__raan; r.engine.select(null); r.setFilters({ cons: r.catalog.dict.cons.indexOf('Starlink') }) })
+  await p.waitForTimeout(1500)
+  await p.screenshot({ path: out.replace('.png', '_starlink.png') })
+  await b.close()
+})()

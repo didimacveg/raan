@@ -1,0 +1,164 @@
+# Daily: polite CelesTrak fetch → catalogue + forward archive → intelligence report → GitHub Pages.
+# Also runs on every push to main. Costs nothing on a public repository.
+#
+# Least privilege: no permission by default; each job asks only for what it needs.
+#   build    reads the repository, runs all third-party code (pip, npm) with a read-only token
+#   archive  the only job that can write: appends one snapshot file to the `data` branch
+#   deploy   publishes the artefact built by `build` to GitHub Pages
+# Actions are pinned to commit SHAs (the comment gives the release).
+name: Site and daily data
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 5 * * *' # 05:17 UTC, once a day (CelesTrak updates every 2 h; we need one)
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      fresh: ${{ steps.catalog.outputs.fresh }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -e .
+
+      - name: Restore the snapshot archive (data branch, read-only)
+        # First run: the branch does not exist yet and the archive is simply empty.
+        run: |
+          mkdir -p archive/snapshots
+          if git fetch -q --depth=1 origin data 2>/dev/null; then
+            git archive FETCH_HEAD snapshots 2>/dev/null | tar -x -C archive || true
+          fi
+          echo "snapshots available: $(ls archive/snapshots | wc -l)"
+
+      - name: Restore the last catalogue this workflow built
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/catalog.json
+          key: catalog-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: catalog-
+
+      - name: Fetch CelesTrak once and rebuild the catalogue
+        id: catalog
+        # CelesTrak usage policy: one download per update, stop on any non-200 answer, no retry.
+        # If the download is refused (e.g. HTTP 403 "not updated since your last download" on a
+        # shared runner address) the newest catalogue we already have is published instead:
+        # the one from the previous run, or the one committed in the repository.
+        run: |
+          set +e
+          python -m raan.catalog.build --fetch --archive new-snapshot --fallback .cache/catalog.json
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            mkdir -p .cache && cp web/public/data/catalog.json .cache/catalog.json
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CelesTrak data not refreshed (exit $code); publishing the previous snapshot"
+          fi
+
+      - name: Remember this catalogue for the next run
+        if: steps.catalog.outputs.fresh == 'true' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/catalog.json
+          key: catalog-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Hand today's snapshot to the archive job
+        if: steps.catalog.outputs.fresh == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: snapshot
+          path: new-snapshot/*.csv.gz
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Intelligence report
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then pip install -q anthropic; fi
+          python -m raan.intel.run --archive archive/snapshots
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: web/dist
+
+  archive:
+    # Forward archive for manoeuvre detection: one compact snapshot per day on the `data` branch.
+    needs: build
+    if: github.ref == 'refs/heads/main' && needs.build.outputs.fresh == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: snapshot
+          path: incoming
+      - name: Append the snapshot to the data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q archive
+          cd archive
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git fetch -q --depth=1 origin data 2>/dev/null; then
+            git checkout -q -b data FETCH_HEAD
+          else
+            git checkout -q --orphan data
+            printf '%s\n' "Daily snapshots of public GP mean elements (one gzip CSV per day)." \
+              "Source: CelesTrak (celestrak.org), derived from 18 SDS / Space-Track.org data." \
+              "Written by .github/workflows/pages.yml on the main branch." > README.md
+            git add README.md
+          fi
+          mkdir -p snapshots
+          cp ../incoming/*.csv.gz snapshots/
+          git add snapshots
+          if git diff --cached --quiet; then
+            echo "nothing new to store"
+            exit 0
+          fi
+          git -c user.name="raan-archiver" -c user.email="actions@users.noreply.github.com" \
+            commit -q -m "snapshot $(ls ../incoming | sed 's/.csv.gz//' | tr '\n' ' ')"
+          git push -q origin data
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

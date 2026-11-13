@@ -1,0 +1,9 @@
+{
+ "source": "web/src/twin/sgp4.test.ts",
+ "propagator": "satellite.js",
+ "vectors": 666,
+ "tle_max_km": 1.1708084947102836e-7,
+ "tle_worst": "20413 @ 1844335 min",
+ "omm_max_km": 0.00003504694019277391,
+ "omm_worst": "23333 @ 0 min"
+}
