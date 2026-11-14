@@ -10,9 +10,11 @@ de cada una, con su respuesta, están en `docs/DEFENSA.md`, sección 5.
 
 ## Antes de programar nada
 
-1. **Despliega la web primero** (`docs/PASOS_PARA_DIEGO.md`, pasos 1 a 3). Todas las
-   publicaciones enlazan a `https://didimacveg.github.io/kessler/`. Si cambias el nombre del
-   repositorio, cambia el enlace en los textos.
+1. **Despliega la web primero, ya con el nombre nuevo** (`docs/PASOS_PARA_DIEGO.md`, paso 1).
+   Todas las publicaciones enlazan a `https://didimacveg.github.io/raan/`, que solo funciona
+   después de renombrar el repositorio a `raan` y relanzar el workflow. Ábrela antes de
+   programar: si da 404, no programes nada. Si algún día vuelves a cambiar el nombre del
+   repositorio, cambia también el enlace en estos textos (la dirección antigua no redirige).
 2. **El enlace va en el primer comentario**, no en el texto (LinkedIn reduce el alcance de las
    publicaciones con enlaces externos). Cada publicación trae su comentario preparado.
 3. **Comprueba los números el día antes.** Los de colisiones y maniobras salen de
@@ -81,9 +83,9 @@ Link in the first comment. Criticism from people who do this for a living is ver
 **Primer comentario:**
 
 ```text
-Site: https://didimacveg.github.io/kessler/
-Code and data pipeline: https://github.com/didimacveg/kessler
-Technical report (PDF): https://didimacveg.github.io/kessler/RAAN_technical_report.pdf
+Site: https://didimacveg.github.io/raan/
+Code and data pipeline: https://github.com/didimacveg/raan
+Technical report (PDF): https://didimacveg.github.io/raan/RAAN_technical_report.pdf
 Orbital data: CelesTrak / 18 SDS. Conjunction data: ESA (CC BY 4.0).
 ```
 
@@ -113,7 +115,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 
 ```text
 CelesTrak's explanation of the change: https://celestrak.org/NORAD/documentation/gp-data-formats.php
-The project: https://didimacveg.github.io/kessler/
+The project: https://didimacveg.github.io/raan/
 ```
 
 ---
@@ -146,7 +148,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 
 ```text
 Reference: Vallado, Crawford, Hujsak, Kelso, "Revisiting Spacetrack Report #3" (AIAA 2006-6753).
-Test file in the repo: web/src/twin/sgp4.test.ts → https://github.com/didimacveg/kessler
+Test file in the repo: web/src/twin/sgp4.test.ts → https://github.com/didimacveg/raan
 ```
 
 ---
@@ -177,7 +179,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 **Primer comentario:**
 
 ```text
-Try it (click any dot for its elements, epoch and source): https://didimacveg.github.io/kessler/
+Try it (click any dot for its elements, epoch and source): https://didimacveg.github.io/raan/
 Data: CelesTrak GP, derived from 18 SDS / Space-Track. The site refreshes daily, so today's counts differ slightly from the 11 November ones in the post.
 ```
 
@@ -213,7 +215,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 ```text
 Paper: Uriot et al., "Spacecraft Collision Avoidance Challenge: design and results of a machine learning competition", arXiv:2008.03069
 Dataset (CC BY 4.0): https://doi.org/10.5281/zenodo.4463683
-Interactive results: https://didimacveg.github.io/kessler/#/collision
+Interactive results: https://didimacveg.github.io/raan/#/collision
 ```
 
 ---
@@ -249,7 +251,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 **Primer comentario:**
 
 ```text
-You can move the threshold yourself: https://didimacveg.github.io/kessler/#/collision
+You can move the threshold yourself: https://didimacveg.github.io/raan/#/collision
 (Moving it on that page is tuning on the test labels. It shows the trade-off; it is not a result. The page says so.)
 ```
 
@@ -284,7 +286,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 **Primer comentario:**
 
 ```text
-The two charts behind this (transition rates and calibration): https://didimacveg.github.io/kessler/#/collision
+The two charts behind this (transition rates and calibration): https://didimacveg.github.io/raan/#/collision
 ESA's own description of the split: https://kelvins.esa.int/collision-avoidance-challenge/data/
 ```
 
@@ -318,7 +320,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 
 ```text
 The test that caught it: tests/test_collision.py. The replay of the bug: python -m raan.collision.replay_bug
-https://github.com/didimacveg/kessler
+https://github.com/didimacveg/raan
 ```
 
 ---
@@ -353,7 +355,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 **Primer comentario:**
 
 ```text
-Model cards for every model, including the ones that failed: https://didimacveg.github.io/kessler/#/research
+Model cards for every model, including the ones that failed: https://didimacveg.github.io/raan/#/research
 ```
 
 ---
@@ -387,7 +389,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 **Primer comentario:**
 
 ```text
-Timelines for all 15 satellites, with the evidence behind each detection: https://didimacveg.github.io/kessler/#/maneuvers
+Timelines for all 15 satellites, with the evidence behind each detection: https://didimacveg.github.io/raan/#/maneuvers
 Labels: International DORIS Service, via the benchmark of Shorten et al. (arXiv:2212.08662).
 ```
 
@@ -424,7 +426,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 **Primer comentario:**
 
 ```text
-Ablation table and per-satellite results: https://didimacveg.github.io/kessler/#/maneuvers
+Ablation table and per-satellite results: https://didimacveg.github.io/raan/#/maneuvers
 ```
 
 ---
@@ -459,7 +461,7 @@ Built with substantial help from an AI coding assistant (Claude Code).
 **Primer comentario:**
 
 ```text
-Method and limits: https://didimacveg.github.io/kessler/#/maneuvers
+Method and limits: https://didimacveg.github.io/raan/#/maneuvers
 All of this covers impulsive burns on 15 well-tracked satellites. Low-thrust electric propulsion is not covered, and the page says so.
 ```
 
@@ -495,6 +497,6 @@ Built with substantial help from an AI coding assistant (Claude Code).
 **Primer comentario:**
 
 ```text
-The report, with the source of every figure: https://didimacveg.github.io/kessler/#/intelligence
-The check itself (about 30 lines): raan/intel/core.py → https://github.com/didimacveg/kessler
+The report, with the source of every figure: https://didimacveg.github.io/raan/#/intelligence
+The check itself (about 30 lines): raan/intel/core.py → https://github.com/didimacveg/raan
 ```

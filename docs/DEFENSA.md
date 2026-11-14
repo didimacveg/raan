@@ -668,9 +668,10 @@ Las respuestas están en español para que las entiendas; contesta en inglés co
 - **«¿En qué se diferencia de KeepTrack o Stuff in Space?»** → «Como visor, es peor y más
   pequeño; ellos son mucho más completos. El globo solo da contexto. Lo que quería enseñar son
   los dos experimentos y cómo están evaluados.»
-- **«¿Por qué se llama RAAN y el repositorio kessler?»** → «Kessler era el nombre provisional.
-  Ya existe una librería de aprendizaje automático para colisiones con ese nombre, vinculada a
-  la ESA, y no quería confusión. RAAN es un elemento orbital.»
+- **«¿Por qué se llama RAAN? En el historial aparece kessler.»** → «Kessler era el nombre
+  provisional. Ya existe una librería de aprendizaje automático para colisiones con ese nombre,
+  vinculada a la ESA, y no quería confusión, así que cambié el nombre del proyecto y después el
+  del repositorio. RAAN es un elemento orbital.»
 
 ### 1 · El formato TLE
 - **«¿Entonces el TLE ha muerto?»** → «No. Para los objetos con número de 5 dígitos sigue

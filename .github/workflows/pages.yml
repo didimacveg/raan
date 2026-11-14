@@ -26,6 +26,7 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+      pages: read # configure-pages reads the site's base path; it cannot change anything
     outputs:
       fresh: ${{ steps.catalog.outputs.fresh }}
     steps:
@@ -102,8 +103,22 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
         working-directory: web
-      - run: npm run build
+
+      - name: Ask GitHub Pages for the site's base path
+        # base_path is "/<repository>" for a project site ("/raan"), "" for a user site. Nothing
+        # in the repository hard-codes it, so a rename needs no code change. If Pages is not
+        # enabled yet this step fails softly and the build falls back to relative URLs ("./").
+        id: pages
+        continue-on-error: true
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Build the site
         working-directory: web
+        env:
+          BASE_PATH: ${{ steps.pages.outcome == 'success' && format('{0}/', steps.pages.outputs.base_path) || './' }}
+        run: |
+          echo "base path: $BASE_PATH"
+          npm run build
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: web/dist

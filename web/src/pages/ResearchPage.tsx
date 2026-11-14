@@ -297,7 +297,7 @@ export default function ResearchPage() {
           and downloads 221 MB.
         </p>
         <div className="cmd">
-          {`git clone ${BRAND.repo}.git && cd kessler
+          {`git clone ${BRAND.repo}.git && cd ${BRAND.repoName}
 make setup        `}
           <span># virtualenv + npm dependencies</span>
           {`
