@@ -202,10 +202,10 @@ Alternatives considered: **RAAN** (Right Ascension of the Ascending Node — no 
 **VISVIVA** (a "Vis Viva Space" mission-planning start-up exists → rejected), **APOGEO** (Apogeo
 Space, Italian IoT constellation → rejected).
 
-**Decision: the product name is `RAAN · Open Orbital Intelligence Lab`.** The GitHub repository can
-stay `kessler` (renaming is one click, see `docs/PASOS_PARA_DIEGO.md`). The brand lives in exactly
-two constants (`web/src/brand.ts`, `raan/brand.py`) so reverting to KESSLER is a two-line change if
-Diego prefers to accept the collision.
+**Decision: the product name is `RAAN · Open Orbital Intelligence Lab`.** The GitHub repository,
+first kept as `kessler`, was renamed `raan` in November 2026 (DECISIONS #26). The brand and the
+repository name live in two places (`web/src/brand.ts`, `raan/brand.py`); the site's base path is
+not written anywhere and is read from GitHub Pages at deploy time.
 
 ## 6. Things in the brief I am changing, and why
 

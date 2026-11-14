@@ -136,7 +136,7 @@
    "text": "16,894",
    "label": "active objects",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.count": {
    "id": "catalog.count",
@@ -144,7 +144,7 @@
    "text": "20,152",
    "label": "Objects with public bulk GP data",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.coverage": {
    "id": "catalog.coverage",
@@ -152,7 +152,7 @@
    "text": "57%",
    "label": "Share of on-orbit objects shown",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.date": {
    "id": "catalog.date",
@@ -160,7 +160,7 @@
    "text": "2026-11-11 22:42:12 UTC",
    "label": "Snapshot time (UTC)",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.debris": {
    "id": "catalog.debris",
@@ -168,7 +168,7 @@
    "text": "2,675",
    "label": "debris objects",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.geo": {
    "id": "catalog.geo",
@@ -176,7 +176,7 @@
    "text": "585",
    "label": "Objects in GEO",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.leo": {
    "id": "catalog.leo",
@@ -184,7 +184,7 @@
    "text": "19,271",
    "label": "Objects in LEO",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.median_age_h": {
    "id": "catalog.median_age_h",
@@ -192,7 +192,7 @@
    "text": "16.0",
    "label": "Median element-set age (hours)",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.on_orbit": {
    "id": "catalog.on_orbit",
@@ -216,7 +216,7 @@
    "text": "312",
    "label": "Objects whose elements are older than 5 days",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.top_constellation": {
    "id": "catalog.top_constellation",
@@ -224,7 +224,7 @@
    "text": "Starlink",
    "label": "Largest constellation",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.top_constellation_n": {
    "id": "catalog.top_constellation_n",
@@ -232,7 +232,7 @@
    "text": "11,195",
    "label": "Starlink objects",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "catalog.top_constellation_share": {
    "id": "catalog.top_constellation_share",
@@ -240,7 +240,7 @@
    "text": "66%",
    "label": "Starlink share of active payloads",
    "source": "web/public/data/catalog.json",
-   "link": "https://didimacveg.github.io/kessler/#/"
+   "link": "https://didimacveg.github.io/raan/#/"
   },
   "col.gate.cv": {
    "id": "col.gate.cv",
@@ -248,7 +248,7 @@
    "text": "0.98",
    "label": "Gate model, cross-validated L",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.gate.fn": {
    "id": "col.gate.fn",
@@ -256,7 +256,7 @@
    "text": "13",
    "label": "High-risk events missed by the gate",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.gate.fp": {
    "id": "col.gate.fp",
@@ -264,7 +264,7 @@
    "text": "185",
    "label": "False alarms of the gate",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.gate.p_better": {
    "id": "col.gate.p_better",
@@ -272,7 +272,7 @@
    "text": "86%",
    "label": "Share of bootstrap resamples where the gate beats the naive forecast",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.gbm_gate.L": {
    "id": "col.gbm_gate.L",
@@ -280,7 +280,7 @@
    "text": "0.627",
    "label": "LightGBM gate + value: challenge loss L (test)",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.hr": {
    "id": "col.hr",
@@ -288,7 +288,7 @@
    "text": "150",
    "label": "High-risk test events",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.lrp.L": {
    "id": "col.lrp.L",
@@ -296,7 +296,7 @@
    "text": "0.694",
    "label": "Latest risk (naive forecast): challenge loss L (test)",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.lrp.cv": {
    "id": "col.lrp.cv",
@@ -304,7 +304,7 @@
    "text": "0.80",
    "label": "Naive forecast, cross-validated L",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.lrp.fn": {
    "id": "col.lrp.fn",
@@ -312,7 +312,7 @@
    "text": "35",
    "label": "High-risk events missed by the naive forecast",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.lrp.fp": {
    "id": "col.lrp.fp",
@@ -320,7 +320,7 @@
    "text": "63",
    "label": "False alarms of the naive forecast",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.prev_test": {
    "id": "col.prev_test",
@@ -328,7 +328,7 @@
    "text": "6.9%",
    "label": "High-risk prevalence, test",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.prev_train": {
    "id": "col.prev_train",
@@ -336,7 +336,7 @@
    "text": "0.8%",
    "label": "High-risk prevalence, training",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.test_events": {
    "id": "col.test_events",
@@ -344,7 +344,7 @@
    "text": "2,167",
    "label": "Test events",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "col.train_hr": {
    "id": "col.train_hr",
@@ -352,7 +352,7 @@
    "text": "66",
    "label": "High-risk training events under test conditions",
    "source": "web/public/data/collision.json",
-   "link": "https://didimacveg.github.io/kessler/#/collision"
+   "link": "https://didimacveg.github.io/raan/#/collision"
   },
   "man.a_only.f1": {
    "id": "man.a_only.f1",
@@ -360,7 +360,7 @@
    "text": "0.79",
    "label": "Semi-major-axis-only detector, F1",
    "source": "web/public/data/maneuvers.json",
-   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+   "link": "https://didimacveg.github.io/raan/#/maneuvers"
   },
   "man.cusum.f1": {
    "id": "man.cusum.f1",
@@ -368,7 +368,7 @@
    "text": "0.52",
    "label": "cusum detector, f1 (all satellites)",
    "source": "web/public/data/maneuvers.json",
-   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+   "link": "https://didimacveg.github.io/raan/#/maneuvers"
   },
   "man.events": {
    "id": "man.events",
@@ -376,7 +376,7 @@
    "text": "803",
    "label": "Reported manoeuvre events",
    "source": "web/public/data/maneuvers.json",
-   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+   "link": "https://didimacveg.github.io/raan/#/maneuvers"
   },
   "man.ml.f1": {
    "id": "man.ml.f1",
@@ -384,7 +384,7 @@
    "text": "0.81",
    "label": "ml detector, f1 (all satellites)",
    "source": "web/public/data/maneuvers.json",
-   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+   "link": "https://didimacveg.github.io/raan/#/maneuvers"
   },
   "man.ml.precision": {
    "id": "man.ml.precision",
@@ -392,7 +392,7 @@
    "text": "0.83",
    "label": "ml detector, precision (all satellites)",
    "source": "web/public/data/maneuvers.json",
-   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+   "link": "https://didimacveg.github.io/raan/#/maneuvers"
   },
   "man.ml.recall": {
    "id": "man.ml.recall",
@@ -400,7 +400,7 @@
    "text": "0.80",
    "label": "ml detector, recall (all satellites)",
    "source": "web/public/data/maneuvers.json",
-   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+   "link": "https://didimacveg.github.io/raan/#/maneuvers"
   },
   "man.physics.f1": {
    "id": "man.physics.f1",
@@ -408,7 +408,7 @@
    "text": "0.74",
    "label": "physics detector, f1 (all satellites)",
    "source": "web/public/data/maneuvers.json",
-   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+   "link": "https://didimacveg.github.io/raan/#/maneuvers"
   },
   "man.sats": {
    "id": "man.sats",
@@ -416,7 +416,7 @@
    "text": "15",
    "label": "Benchmark satellites",
    "source": "web/public/data/maneuvers.json",
-   "link": "https://didimacveg.github.io/kessler/#/maneuvers"
+   "link": "https://didimacveg.github.io/raan/#/maneuvers"
   }
  }
 }

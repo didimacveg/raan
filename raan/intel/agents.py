@@ -18,9 +18,9 @@ from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from raan.brand import SITE_URL as SITE
 from raan.intel.core import FactStore, Finding, unsupported_numbers
 
-SITE = "https://didimacveg.github.io/kessler/"
 GP_QUERY = "https://celestrak.org/NORAD/elements/gp.php"
 STALE_DAYS = 5.0
 CHANGE_MIN_M = 100.0  # minimum |Δa| for an orbit change to be listed

@@ -28,8 +28,11 @@ database, no paid service.
 | Deploy from the data cron | native (`actions/deploy-pages`) | needs a deploy hook |
 | Risk for a later company pilot | none | licence change needed |
 
-The build uses `base: './'` and hash routing, so the same `web/dist` also works on Vercel, Netlify
-or any file server if Diego changes his mind. Pages needs the repository to be **public**.
+Hash routing plus a base path that nobody writes by hand. On GitHub Pages the workflow asks
+`actions/configure-pages` for the site's `base_path` (`/raan` today) and passes it to Vite as
+`BASE_PATH`, so a repository rename only needs a new deploy. Without `BASE_PATH` (local dev,
+`vite preview`, Vercel, Netlify, a file server) the build uses relative URLs (`./`) and works under
+any path. On a free GitHub plan, Pages needs the repository to be **public**.
 
 ### Front-end: three.js, hand-written shaders
 
